@@ -1,6 +1,6 @@
 ---
 name: personal-skill-generator
-description: Create, update, migrate, or audit personal agent skills using a two-part layout - a thin machine-local handler in the skills directory holding this computer's variables (working directory, model, effort, MCP server names, secret references), and a portable core in the personal skills repo holding the general function. Builds on a skill-creator tool and delegates its test-and-iterate loop to it. Use whenever the user wants to create a new skill, make or build a skill, turn a workflow or conversation into a skill, add a skill for some task, change the model, effort, or working directory of an existing skill, move a single-file skill into the handler and core layout, or check that skills are consistent - even if they just say "make this a skill" without naming this one.
+description: Create, update, migrate, audit, or onboard personal agent skills using a two-part layout - a thin machine-local handler in the skills directory holding this computer's variables (working directory, model, effort, MCP server names, secret references), and a portable core in the personal skills repo holding the general function. Builds on a skill-creator tool and delegates its test-and-iterate loop to it. Use whenever the user wants to create a new skill, make or build a skill, turn a workflow or conversation into a skill, add a skill for some task, change the model, effort, or working directory of an existing skill, move a single-file skill into the handler and core layout, check that skills are consistent, or set up handlers for the skill repos on a new computer - even if they just say "make this a skill" without naming this one.
 ---
 
 # Personal skill generator
@@ -9,7 +9,8 @@ You build skills for one person on one machine, and you keep two kinds of
 knowledge apart:
 
 - **The core is what the skill does.** It is general, portable, and safe to
-  commit and share. It lives in `{{REPO_DIR}}/<skill-name>/`.
+  commit and share. It lives in the skill's home repo, `<repo>/<skill-name>/`:
+  `{{SECOPS_REPO_DIR}}` for security-related skills, `{{REPO_DIR}}` for the rest.
 - **The handler is where and how it runs here.** It holds values that belong to
   this computer and this agent setup: working directory, model, effort, MCP
   server names, output folders, and references to secrets. It lives in
@@ -23,9 +24,9 @@ out of anything that gets committed.
 
 ```
 {{SKILLS_DIR}}/<name>/SKILL.md      handler: frontmatter + variables + "read the core"
-{{REPO_DIR}}/<name>/SKILL.md        core: general instructions with double-brace placeholders
-{{REPO_DIR}}/<name>/references/     core: longer docs the core loads on demand
-{{REPO_DIR}}/<name>/scripts/        core: deterministic helpers
+<repo>/<name>/SKILL.md              core: general instructions with double-brace placeholders
+<repo>/<name>/references/           core: longer docs the core loads on demand
+<repo>/<name>/scripts/              core: deterministic helpers
 ```
 
 ## Variables this skill expects
@@ -34,7 +35,8 @@ The handler supplies these values; use the placeholders, never literals.
 
 | Variable | Meaning |
 |---|---|
-| `{{REPO_DIR}}` | Root of the personal skills repo (holds every core) |
+| `{{REPO_DIR}}` | Root of the general skills repo (reliability, operations, tooling, and this generator) |
+| `{{SECOPS_REPO_DIR}}` | Root of the security skills repo |
 | `{{SKILLS_DIR}}` | Directory the agent runtime reads personal skills from |
 | `{{CORE_DIR}}` | This skill's own core directory |
 | `{{DEFAULT_MODEL}}` | Model ID given to a new skill when the user names none |
@@ -61,6 +63,10 @@ is obvious:
   Go to "Migrating a skill".
 - **Audit:** check every skill for drift. Run the checker over each pair and
   report; fix nothing without being asked.
+- **Onboard:** the cores exist (a fresh clone, a new computer, a wiped skills
+  directory) but their handlers do not. Go to "Onboarding handlers for existing
+  cores". The step-by-step guide for a whole machine, including the first
+  bootstrap of this skill's own handler, is `{{REPO_DIR}}/ONBOARDING.md`.
 
 ## Creating a skill
 
@@ -81,9 +87,35 @@ possible. The goal is to know:
    not. Suggest a default and let the user decide.
 
 Choose the name: lowercase kebab-case, short, specific. Check it is free in
-`{{SKILLS_DIR}}`, in `{{REPO_DIR}}`, and among the skills already listed in the
-session including plugin skills. A collision silently shadows one of them, so
+`{{SKILLS_DIR}}`, in both `{{REPO_DIR}}` and `{{SECOPS_REPO_DIR}}`, and among the
+skills already listed in the session including plugin skills. A collision silently shadows one of them, so
 pick another name or ask.
+
+#### Choose the home repo
+
+Two repos hold cores, and the skill's subject decides which:
+
+- **`{{SECOPS_REPO_DIR}}`** for security-related skills: vulnerability hunting and
+  code review for security, exposure and attack-surface checks, IAM and permission
+  audits, threat modelling, penetration testing of one's own assets, secrets and
+  credential hygiene, security incident triage, and compliance evidence.
+- **`{{REPO_DIR}}`** for everything else: reliability, operations, observability,
+  infrastructure, and tooling.
+
+If a skill straddles the line, choose by its main purpose and say which you chose;
+ask only when it is genuinely half and half. Call the chosen repo `<repo>` from
+here on. The repo is part of the skill's identity: moving a skill later means
+moving the core and updating the handler's core path together. Make sure `<repo>`
+exists and is a git repository before you write into it; if it is not, tell the
+user, because the handler's preflight pauses until it is a repository with a
+remote.
+
+Security skills carry one extra rule: **the core states the method, never the
+target.** Scope and authorization (which domains, accounts, projects, and ranges
+are in scope and which are out), rules of engagement, and every identifier go in
+the handler as variables, so a core can be reviewed or shared without exposing
+what it protects. Findings, hostnames, and evidence are never written into a core
+or its tests unless the user asks.
 
 ### 2. Sort every value into core or handler
 
@@ -163,7 +195,7 @@ short:
 
 ### 4. Write the core
 
-Create `{{REPO_DIR}}/<name>/SKILL.md` from `templates/core.SKILL.md`. The core's
+Create `<repo>/<name>/SKILL.md` from `templates/core.SKILL.md`. The core's
 frontmatter has only `name` and `description`: model and effort are machine
 choices and belong to the handler.
 
@@ -230,7 +262,7 @@ Run the checker. It fails on problems that would break the skill or leak
 something:
 
 ```bash
-bash {{CORE_DIR}}/scripts/check-skill.sh {{REPO_DIR}}/<name> {{SKILLS_DIR}}/<name>
+bash {{CORE_DIR}}/scripts/check-skill.sh <repo>/<name> {{SKILLS_DIR}}/<name>
 ```
 
 It verifies: both files exist with the right frontmatter; the core has no model
@@ -251,7 +283,7 @@ You do not reimplement evaluation. Skill-creator already has the test-run,
 grading, review-viewer, and description-optimisation loop; hand it the work:
 
 1. If the user wants testing, draft 2-3 realistic prompts, the kind a real user
-   would type, and save them to `{{REPO_DIR}}/<name>/evals/evals.json`.
+   would type, and save them to `<repo>/<name>/evals/evals.json`.
 2. Invoke `{{SKILL_CREATOR}}` with the **handler** path as the skill under test,
    so the run exercises the real handler-plus-core path, and the workspace in
    `{{WORKSPACES_DIR}}/<name>/`. Its scripts and eval viewer are in
@@ -265,10 +297,10 @@ checked skill is a fine stopping point.
 
 ### 8. Report and stop
 
-Tell the user, briefly: the skill name, the two paths, the model, effort, and
+Tell the user, briefly: the skill name, which repo it went to and why, the two paths, the model, effort, and
 working directory you set, the secret references you recorded (names only), and
 the checker result. Leave the repo uncommitted: show `git status` for
-`{{REPO_DIR}}` and let them commit. Do not add co-author lines or attribution to
+`<repo>` and let them commit. Do not add co-author lines or attribution to
 anything. Do not publish or upload the skill anywhere.
 
 ## Where does a change go
@@ -294,7 +326,8 @@ machine values:
 
 1. Read it fully and snapshot it first, outside the skills directory, so nothing
    is lost: copy it to `{{WORKSPACES_DIR}}/<name>/pre-migration/`.
-2. List every machine-specific literal you find: home paths, output folders,
+2. Decide the home repo (see "Choose the home repo") and tell the user which.
+   List every machine-specific literal you find: home paths, output folders,
    model and effort in frontmatter, MCP prefixes, identifiers. Show the user the
    list with your proposed variable name for each, and confirm.
 3. Write the core with placeholders in their place, and the handler with the
@@ -304,10 +337,41 @@ machine values:
    say what the original said. Only after the user agrees, remove the snapshot.
 5. Do not touch skills the user did not ask you to migrate.
 
+## Onboarding handlers for existing cores
+
+Handlers are machine-local and not in git, so a new machine has cores and no
+handlers. For each core that lacks a handler in `{{SKILLS_DIR}}`, in either repo:
+
+1. Read the core in full. Its "Variables this skill expects" table is the
+   contract: one handler row per variable, plus the standard set.
+2. Derive each value without asking when you can:
+   - the standard rows (`SKILL_NAME`, `CORE_DIR`, and the three preflight rows)
+     come from where the core lives and from this handler's own values;
+   - model, effort, and subagent model default to `{{DEFAULT_MODEL}}`,
+     `{{DEFAULT_EFFORT}}`, and `{{DEFAULT_SUBAGENT_MODEL}}`, and the working and
+     output directories to `{{DEFAULT_WORKDIR}}`, unless the core says it needs
+     something specific;
+   - MCP tool-name prefixes and skill names are found by looking at the tools and
+     skills this session actually has, not by asking.
+3. Ask only for what cannot be discovered: skill-specific identifiers, folders,
+   and anything the person must choose. Batch the questions for every core into one
+   round, and offer a default with each.
+4. Secrets: record references only, per `references/secrets.md`. For a security
+   skill in `{{SECOPS_REPO_DIR}}`, scope and authorization values (what is in and out
+   of scope) must be confirmed explicitly; never assume a target is in scope.
+5. Write each handler from `templates/handler.SKILL.md`, copying the description
+   exactly from the core, and run the checker on the pair. Never overwrite an
+   existing handler without showing what changes.
+6. Leave both repos unchanged. State the defaults you applied so they can be
+   overridden, and remind the person that a new session is needed before the
+   handlers appear in the skill list.
+
 ## Audit
 
-For each directory in `{{SKILLS_DIR}}` that has a handler pointing at a core,
-run the checker and tabulate the results. Separately list skills that have no
+For each directory in `{{SKILLS_DIR}}` that has a handler pointing at a core (in
+either repo), run the checker and tabulate the results, noting which repo each
+core is in and flagging any security-related core that sits in `{{REPO_DIR}}`
+(or the reverse). Separately list skills that have no
 core (legacy single-file skills, plugin-managed folders, or folders you do not
 recognise) as "not in this layout", and do not modify them.
 
@@ -318,5 +382,6 @@ recognise) as "not in this layout", and do not modify them.
   a credential.
 - `templates/core.SKILL.md` and `templates/handler.SKILL.md`: the two files to
   start from.
+- `{{REPO_DIR}}/ONBOARDING.md`: the guide for setting up both repos on a computer.
 - `scripts/check-skill.sh`: the consistency and leak checker.
 - `scripts/preflight.sh`: the branch-and-freshness gate every handler runs first.
