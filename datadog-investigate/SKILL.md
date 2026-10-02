@@ -1,6 +1,6 @@
 ---
 name: datadog-investigate
-description: Investigate a production alert, monitor, incident, or symptom the way Datadog's Bits AI SRE does - hypothesis-driven root cause analysis using the Datadog MCP as the only evidence source. Takes one or more Datadog alarm links (monitor, event, incident, trace, log, dashboard, synthetic URLs) pasted on their own, parses them, and investigates autonomously with no further questions. Builds a hypothesis tree, tests each branch with targeted logs/metrics/traces/events/change queries, prunes what the data rejects, recurses into what it supports, and reports validated / invalidated / inconclusive with the queries as evidence. Use whenever the user pastes a datadoghq.com link (even with no other text), or gives a monitor name or ID, an alert, an incident, an error spike, latency regression, "why is X failing/slow/down", "what changed", "investigate this alert", "RCA", or "bits investigate" - even if they do not mention Datadog.
+description: Investigate a production alert, monitor, incident, or symptom the way Datadog's Bits AI SRE does - hypothesis-driven root cause analysis using the Datadog MCP as the only evidence source. Takes one or more Datadog alarm links (monitor, event, incident, trace, log, dashboard, synthetic URLs) pasted on their own, parses them, and investigates autonomously with no further questions. Builds a hypothesis tree, tests each branch with targeted logs/metrics/traces/events/change queries, prunes what the data rejects, recurses into what it supports, and reports validated / invalidated / inconclusive with the queries as evidence. Use whenever the user pastes a datadoghq.com link (even with no other text), or gives a monitor name or ID, an alert, an incident, an error spike, latency regression, "why is X failing/slow/down", "what changed", "investigate this alert", "RCA", or "bits investigate" - even if they do not mention Datadog. Runs a normal investigation by default; runs a deep investigation (more hypotheses, more rounds, dependency walks, disconfirmation checks) when the user asks for "deep", "deep dive", "thorough", "full RCA", or "dig deeper".
 ---
 
 # Datadog investigation (Bits-style)
@@ -35,10 +35,16 @@ literal path, model, MCP server name, or skill name in this file.
 | `{{SUBAGENT_TYPE}}` | Subagent type used for executors; it must have the Datadog MCP tools |
 | `{{MAX_EXECUTORS_PER_ROUND}}` | Most executors to run in parallel in one round |
 | `{{MAX_ROUNDS}}` | Most plan-execute-consolidate rounds before concluding |
+| `{{PROBE_QUERY_LIMIT}}` | Most queries one probe may spend in a normal run |
+| `{{DEEP_SUBAGENT_MODEL}}` | Model every executor runs on in a deep run |
+| `{{DEEP_MAX_EXECUTORS_PER_ROUND}}` | Most executors in parallel in one round of a deep run |
+| `{{DEEP_MAX_ROUNDS}}` | Most rounds in a deep run |
+| `{{DEEP_PROBE_QUERY_LIMIT}}` | Most queries one probe may spend in a deep run |
 | `{{DATADOG_MCP_PREFIX}}` | Prefix of the Datadog MCP's tool names in this runtime |
 | `{{DATADOG_SITE}}` | Datadog site the connected MCP serves |
 | `{{PAGE_DESIGN_SKILL}}` | Skill that governs the page contract for HTML output |
-| `{{CHART_SKILL}}` | Skill that governs charts, loaded only if a chart is included |
+| `{{CHART_SKILL}}` | Skill that governs charts, loaded before drawing the time chart in the report |
+| `{{DOCS_DIR}}` | Documentation repo for the platform under investigation; read it before concluding a metric, log, or service has no data |
 
 ## Rules of engagement
 
@@ -56,6 +62,36 @@ literal path, model, MCP server name, or skill name in this file.
 - **One question per query.** Keep time ranges tight (see Step 3). Do not
   broad-scan with `*` queries or pull `extra_fields=["*"]` unless a specific
   hit needs it.
+
+## Mode: normal or deep
+
+Every run is one of two modes. **Normal is the default.** Choose **deep** only when
+the user asks for it in any form ("deep", "deep dive", "thorough", "in depth",
+"full RCA", "dig deeper", "go deeper", or `deep` before a link), or follows a
+normal run that ended low-confidence or inconclusive with a request to continue.
+Never escalate on your own; at the end of a normal run that ended low-confidence
+or inconclusive, say in one line that a deep run is available.
+
+| | Normal | Deep |
+|---|---|---|
+| Executors per round | `{{MAX_EXECUTORS_PER_ROUND}}` | `{{DEEP_MAX_EXECUTORS_PER_ROUND}}` |
+| Rounds | `{{MAX_ROUNDS}}` | `{{DEEP_MAX_ROUNDS}}` |
+| Queries per probe | `{{PROBE_QUERY_LIMIT}}` | `{{DEEP_PROBE_QUERY_LIMIT}}` |
+| Executor model | `{{SUBAGENT_MODEL}}` | `{{DEEP_SUBAGENT_MODEL}}` |
+| Hypotheses | 3 to 6 | 6 to 10 |
+
+Wherever a later step names the normal value of one of these, use the deep value
+when the run is deep. In both modes the split of work is the same: executors only
+execute (run the queries in a probe and report what they saw), and all thinking
+runs on the planner model `{{MODEL}}`: forming and ranking hypotheses, writing
+probes, judging evidence, re-running decisive queries, and writing the report.
+Deep mode adds executors and depth, never judgement for executors. Before the
+first query, check which model you are actually running on; if it is not
+`{{MODEL}}`, say so in the first line of your reply and in the report footer.
+State the mode in one line before the first query. In deep
+mode, read `references/deep-investigation.md` now: it changes the context, plan,
+consolidation, verification, and report. In normal mode the rest of this file
+applies as written.
 
 ## Step -1 - input: alarm links are the whole request
 
@@ -77,51 +113,21 @@ text if it matters.
 
 ### Link parsing
 
-| URL pattern | What it is | Resolve with |
-|---|---|---|
-| `/monitors/<id>` or `/monitors/<id>/status`, `/monitors#<id>` | Monitor | `search_datadog_monitors` by id (read query, threshold, message, state, group) |
-| `/monitors/<id>?group=<k:v>` or `?q=<group>` | Monitor, one alerting group | same, then scope every query to that group's tags |
-| `/event/event?id=<n>`, `/event/explorer?...`, `/event/...` | Alert/event notification | `search_datadog_events` for the event; it names the monitor and group |
-| `/incidents/<id>` | Incident | `get_datadog_incident` with timeline |
-| `/apm/trace/<trace_id>`, `/apm/traces?query=...` | Trace / trace search | `get_datadog_trace` / `search_datadog_spans` |
-| `/logs?query=...`, `/logs/...` | Log search | `search_datadog_logs` with that query |
-| `/dashboard/<id>?...`, `/notebook/<id>` | Dashboard / notebook | `get_datadog_dashboard` / `get_datadog_notebook` for the queries; use its `tpl_var_*` values as filters |
-| `/synthetics/details/<id>` | Synthetic test | monitor/events for that test; failing location and step |
-| `/rum/...`, `/error-tracking/...`, `/services/<svc>` | RUM / error / service view | RUM tools, error-tracking skill, entity search |
-| Anything else on Datadog | Unknown | extract any `query=`, `from_ts`, `to_ts`, `tpl_var_*`, ids, and use them as filters |
-
-Extract and carry forward every parameter that narrows the problem:
-
-- **Time:** `from_ts`, `to_ts`, `eval_ts`/`event_ts`/`evaluation_ts` are epoch
-  **milliseconds** (convert to UTC and state it). The window in the link is the
-  incident window; use it as `T0` context before falling back to "now". A
-  missing time means the alert is current: use the monitor's last transition.
-- **Scope:** `group=`, `q=`, `query=`, `tpl_var_<tag>=<value>` become tag
-  filters (`env`, `service`, `host`, `kube_namespace`, `region`).
-- **IDs:** monitor, event, incident, trace.
-- If the link is a notification link carrying an `event` plus a group, the
-  alerting group (for example `host:abc`) is the scope; do not widen to the
-  whole monitor until that group is understood.
+Read `references/link-parsing.md` now. It maps each URL shape (monitor, event,
+incident, trace, logs, dashboard, notebook, synthetic, RUM, service) to the MCP
+call that resolves it, and lists what to carry forward: time (epoch
+milliseconds, converted to UTC), scope tags (`group=`, `q=`, `tpl_var_*`), and IDs.
+A notification link can be a recovery or warning event: find `T0` from the
+monitor's own transitions, not only the event's timestamp. Do not widen from the
+alerting group to the whole monitor until that group is understood.
 
 ### Several links
 
-1. Parse and resolve all links first, in parallel, then print a short **intake
-   table**: link -> type -> monitor/service -> group -> UTC time -> state.
-2. **Deduplicate** (same monitor, same group, same time bucket is one alarm).
-3. **Cluster** alarms by shared service, dependency, host/node, namespace,
-   cluster, or overlapping time. Alarms that fire within the same few minutes on
-   connected services are presumed to share a cause until the data says
-   otherwise.
-   - A cluster gets **one hypothesis tree**. Start with "one upstream cause
-     explains all of these", and pick the earliest-firing alarm and the deepest
-     dependency as the likely origin.
-   - Unrelated alarms (different services, no dependency, no time overlap) each
-     get their own tree. Run them one after another in the same report; do not
-     force a link between them.
-4. Order the investigation by **earliest T0 first** (causes precede symptoms),
-   not by the order the links were pasted.
-5. Say plainly in the report which alarms are symptoms of the root cause and
-   which are independent.
+Parse and resolve all links first, in parallel, print an intake table, then
+deduplicate, cluster related alarms into one hypothesis tree, order by earliest
+T0, and say which alarms are symptoms and which are independent. Read
+`references/several-links.md` for the full procedure whenever more than one link
+is pasted.
 
 Then continue to Step 0 and Step 1. In Step 1, the links replace the
 "resolve the trigger" lookup: you already have the monitor, scope, and window.
@@ -217,7 +223,7 @@ Each probe has:
 - **group-by:** the dimensions to split on
 - **expect if true / falsified if:** what you would see either way, written
   *before* anyone queries
-- **query limit:** how many queries it may spend (default 6)
+- **query limit:** how many queries it may spend (`{{PROBE_QUERY_LIMIT}}` in a normal run, `{{DEEP_PROBE_QUERY_LIMIT}}` in a deep run)
 
 Rules for writing probes:
 
@@ -305,6 +311,15 @@ warnings, a long-standing error rate). Do not promote a noisy correlate to root
 cause. Check whether it also existed in the baseline window. Executors will
 often surface such correlates; that is their job, and filtering them is yours.
 
+**No data is a finding about the data.** When a metric, tag, log source, or
+service returns nothing, the name you tried may be wrong: exporters publish under
+their own prefix and labels. Before you mark a branch inconclusive or call a
+pipeline stopped, search `{{DOCS_DIR}}` for the system, read its exporter or
+pipeline runbook, and note the documented metric names, label keys, and emitting
+component. Retry with those. Only if they also return nothing, record the gap and
+cite the document. Executors report the names and tags they tried; the docs
+search is yours.
+
 **Budget.** Run at most `{{MAX_ROUNDS}}` rounds. If after two full rounds no
 hypothesis is validated, widen deliberately once (longer window, adjacent
 services, a wider change search, the platform layer) as the final round, then
@@ -348,6 +363,12 @@ Open with the answer: the root cause, or "no root cause established". Then:
 ## Method
 <planned and judged by the planner model; N probes across R rounds run by
  executors on the subagent model; any probe you re-ran yourself, and any that failed>
+
+## Final root cause
+<the last section: the constructed causal chain (trigger, mechanism, why it
+ crossed the alert threshold, recovery; then ruled out, still open, contributing,
+ confidence). Shape and rules are in references/report-visuals-and-root-cause.md;
+ read it now.>
 ```
 
 Rules for the report:
@@ -358,6 +379,9 @@ Rules for the report:
   happen), and **contributing factors** (why it was worse or slower to detect).
 - Report the confidence honestly. A single correlated deploy with no mechanism
   is medium at best.
+- The report ends with the Final root cause section, and the chat reply ends with
+  the same chain in a short form. The opening "Root cause" is the quick answer;
+  the closing one is the argument that earns it, so the two must agree.
 - After the report, offer (do not do) a Datadog notebook or case capturing the
   investigation, and offer to scope a follow-up on any inconclusive branch.
 
@@ -395,48 +419,26 @@ is a deliberate exception to the two-to-four-word title guidance in
 
 **Filename:** `YYYY-MM-DD-HHMM-<slug>.html`, using the same `T0` date and time
 as the title (UTC) and a short kebab-case slug of the service and symptom (for
-example `2026-10-02-1402-checkout-latency.html`). Never overwrite an existing
+example `2026-10-02-1402-checkout-latency.html`). A deep run adds `-deep` to the
+slug (`2026-10-02-1402-checkout-latency-deep.html`). Never overwrite an existing
 report; if the name exists, append `-2`. For a follow-up on the same alarm,
 write a new file and link back to the earlier one.
 
 **Before writing**, load the `{{PAGE_DESIGN_SKILL}}` skill and follow its page
 contract (colour tokens on `:root`, dark-mode
-variants, explicit `body` background, phone-width layout). Load `{{CHART_SKILL}}` only if
-you include a chart. Use a warm, restrained visual style: warm neutral surface, generous
+variants, explicit `body` background, phone-width layout). Load `{{CHART_SKILL}}` before
+drawing the time chart in the diagram section. Use a warm, restrained visual style: warm neutral surface, generous
 whitespace, a serif or humanist heading face with a system sans body, soft
 rounded cards, and one restrained accent colour. Everything is inline: one
 file, inline CSS, no external fonts or scripts unless `{{PAGE_DESIGN_SKILL}}` allows
 them. Small inline JS is fine (for example expand/collapse).
 
-**Sections, in order:**
-
-1. **Header:** the `<h1>` is the report title exactly as defined above (date,
-   time, incident title). Beneath it: the UTC incident window, the time the
-   report was generated, a confidence pill (high / medium / low), and an overall
-   status pill (root cause found / inconclusive).
-2. **Root cause card:** the one or two sentence answer, the trigger vs root
-   cause vs contributing factors, and why the confidence is what it is.
-3. **Impact tiles:** what, where, start and end, and magnitude vs baseline,
-   as a short row of stat tiles.
-4. **Alarms investigated:** the intake table. Each row links back to the
-   original Datadog URL and is tagged root-cause alarm, symptom, or independent.
-5. **Timeline:** a vertical UTC timeline of the change, first symptom, alert,
-   and recovery.
-6. **Hypothesis tree:** nested, collapsible (`<details>`). Each node shows a
-   status pill and a one-line evidence summary. Status is conveyed by an icon
-   and a text label as well as colour: validated, invalidated, inconclusive.
-   Invalidated branches are collapsed by default; validated ones are open.
-7. **Evidence:** one entry per query actually run, by you or an executor: tool,
-   query or filter, time range, result in one line, and whether you verified it
-   yourself. Put raw queries in a monospace block and link to
-   the Datadog object (monitor, trace, incident, change story) when you have
-   its URL.
-8. **Next steps:** split into "do now" and "follow up", each marked with whether
-   it needs an owner's decision.
-9. **Gaps:** missing telemetry and monitor improvements.
-10. **Footer:** generated by the datadog-investigate skill; planner model
-    (`{{MODEL}}`); executor model (`{{SUBAGENT_MODEL}}`) with the number of rounds
-    and probes; and the original alarm links.
+**Sections, in order:** header (with confidence, status, and mode pills), root
+cause card, diagram, impact tiles, alarms investigated, timeline, hypothesis tree,
+evidence, next steps, gaps, method, final root cause, footer. Read
+`references/html-report-sections.md` for what each section holds before you write
+the page; the diagram and the final root cause also have their own spec in
+`references/report-visuals-and-root-cause.md`.
 
 **Hard rules for the HTML:**
 
@@ -474,5 +476,9 @@ it as a private hosted page, when a publishing tool is available.
 - Trusting a monitor's wording over its query. Read what it measures.
 - Treating "no data" as "no problem". Check that the agent/emitter was healthy
   in that window before invalidating on absence.
+- Calling a pipeline stopped because one metric name returned nothing, without
+  checking `{{DOCS_DIR}}` for the names the system really emits.
+- Ending the report with no closing causal chain, or drawing a diagram from
+  numbers you did not retrieve.
 - Investigating a symptom that lives in a different env or region than the
   alert. Carry `env`, `service`, and `version` into every query.
