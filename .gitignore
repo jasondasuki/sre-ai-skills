@@ -1,0 +1,7 @@
+# Machine-local material never belongs in the shared cores
+.workspaces/
+*.local
+*.env
+.env*
+.secrets*
+.DS_Store
