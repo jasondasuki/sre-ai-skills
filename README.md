@@ -12,10 +12,7 @@ here.
 <skill-name>/scripts/      deterministic helpers
 ```
 
-Security-related skills live in the sibling repo `secops-ai-skills`; everything else
-lives here.
-
-Setting up a new computer (or pointing an AI agent at these repos)? Follow
+Setting up a new computer (or pointing an AI agent at this repo)? Follow
 [ONBOARDING.md](ONBOARDING.md).
 
 Create and maintain skills with `personal-skill-generator`. Check one pair with:
