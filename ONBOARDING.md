@@ -1,0 +1,146 @@
+# Onboarding guide for an AI agent
+
+You are setting up two skill repos on a computer: **sre-ai-skills** (reliability,
+operations, tooling, and the skill generator) and **secops-ai-skills** (security
+skills). When you are done, every core in both repos has a working handler in this
+machine's skills directory, and the checker passes. The person you are helping
+should have to answer one short batch of questions and nothing more.
+
+## How the pieces fit
+
+Every skill is two files:
+
+- the **core**, in one of these repos: what the skill does, with double-brace
+  placeholders for anything that belongs to a machine. It is committed and portable.
+- the **handler**, in the agent's skills directory on each computer: the skill's
+  frontmatter (`name`, `description`, `model`, `effort`), a table of this machine's
+  values, a secrets table of references, and a "How to run" block that begins with a
+  preflight check and then tells you to read the core.
+
+Handlers are **not in git**, because they hold machine values. So a new computer has
+the cores (after cloning) and no handlers. Onboarding means generating one handler
+per core. The secops repo depends on this repo: its handlers use this repo's
+generator, preflight script, and checker, so always set up this repo first.
+
+## Ground rules
+
+- **Ask once, in one batch.** Discover what you can (existing skills folder, installed
+  tools, MCP tool names, skill names) before asking. Never ask a question you can
+  answer by looking.
+- **Never take a secret in the conversation.** Handlers record where a secret lives,
+  never its value. If the person pastes one, do not repeat it or write it anywhere;
+  follow `personal-skill-generator/references/secrets.md`.
+- **Do not commit, push, or change repo settings** unless asked. Handlers live outside
+  the repos, so onboarding should leave both repos exactly as cloned.
+- **Never overwrite an existing handler** without showing what changes. Skills in the
+  skills directory that have no core (older single-file skills, plugin folders) are
+  not part of this layout: leave them alone.
+- **Stop on a preflight pause.** If the preflight reports `pause` for either repo,
+  report it and wait. Do not switch branches or pull on the person's behalf.
+- **Security skills need explicit scope.** For anything in the secops repo, the values
+  that define what is in and out of scope are handler variables the person must
+  confirm. Never assume a target is in scope, and never put scope in a core.
+
+## Step 0 - ask the batch
+
+Ask these together, offering a default where one exists:
+
+1. The folder to hold both repos (and where they already are, if cloned).
+2. The clone URLs, if the repos are not on disk yet.
+3. The skills directory this agent runtime reads personal skills from.
+4. Default model and effort for new handlers, and the model subagents should run on
+   (a stronger model for planning and judging, a faster one for subagents).
+5. A default working directory for skills that do not name their own.
+6. Whether to set up testing: the name of the skill-creator skill and where its scripts
+   live, if the person wants to test and tune skills.
+
+## Step 1 - get both repos
+
+Clone any repo that is not on disk, into the folder from step 0. Use sibling folders
+named `sre-ai-skills` and `secops-ai-skills`. Confirm each is on `main` with
+`git -C <repo> branch --show-current` and `git -C <repo> status --short`.
+
+## Step 2 - verify branch and freshness
+
+For each repo, run the preflight against any core in it:
+
+```bash
+bash <sre-ai-skills>/personal-skill-generator/scripts/preflight.sh <repo>/<core> main origin
+```
+
+`PREFLIGHT: ok` means continue. `PREFLIGHT: pause` means stop and report what it
+found and the fix commands it printed.
+
+## Step 3 - bootstrap the generator's handler
+
+The generator makes every other handler, so it must exist first, and it has to be
+written by hand because nothing can generate it yet.
+
+1. Copy `personal-skill-generator/templates/handler.SKILL.md` to
+   `<skills dir>/personal-skill-generator/SKILL.md`.
+2. Replace every `<<TOKEN>>`:
+   - `NAME` is `personal-skill-generator`; `DESCRIPTION` is copied character for
+     character from the core's frontmatter; `MODEL`, `EFFORT` are the step 0 defaults.
+   - `CORE_DIR` is the generator's core folder; `CORE_BRANCH` is `main`;
+     `CORE_REMOTE` is `origin`; `PREFLIGHT_SCRIPT` is that folder's
+     `scripts/preflight.sh`.
+   - `SUBAGENT_MODEL` is the subagent model from step 0, written the way the
+     runtime's subagent tool accepts it (check the tool's schema).
+   - `WORKDIR` and `OUTPUT_DIR`: the sre repo folder is a sensible choice for both.
+   - `EXTRA_ROWS`: one row per variable in the generator core's "Variables this skill
+     expects" table (the two repo roots, the skills directory, the defaults for model,
+     effort, subagent model and working directory, the model alias mapping, the
+     workspaces folder, and the skill-creator name and folder).
+   - `SECRET_ROWS`: a single row saying the skill needs no credentials.
+3. Run the checker:
+
+   ```bash
+   bash personal-skill-generator/scripts/check-skill.sh <sre-ai-skills>/personal-skill-generator <skills dir>/personal-skill-generator
+   ```
+
+   Fix every error. A new session is needed before the skill is listed; if you can
+   invoke it in this session, do; otherwise follow its "Onboarding handlers" section
+   by hand.
+
+## Step 4 - handlers for every other core
+
+List the cores: each folder directly inside either repo that holds a `SKILL.md`,
+except the generator. For each one without a handler in the skills directory, follow
+the generator core's **"Onboarding handlers for existing cores"** section. It tells
+you how to derive each value, which to ask about, and how to treat secrets and scope.
+Batch all the questions across all cores into one round.
+
+## Step 5 - verify
+
+1. Run the checker for every core and handler pair, in both repos. All must pass.
+2. Run the preflight for both repos once more.
+3. Tell the person to start a new session so the handlers are loaded, then confirm
+   they appear in the skill list.
+4. Optionally smoke-test one skill that is safe and read-only.
+
+## Step 6 - report
+
+Say, briefly: which handlers you created (and where), the values you chose by default
+so they can override them, the secret references recorded (names only, plus the
+command for storing each), any variable still unset, and that nothing in either repo
+was changed.
+
+## When something goes wrong
+
+| Symptom | Cause and fix |
+|---|---|
+| Preflight says `pause` | Wrong branch, behind the remote, or unverifiable (no network, no remote). Report it; the person fixes it or says "proceed anyway" |
+| Checker: "core uses a placeholder the handler has no row for" | Handler is out of date or a variable was missed. Add the row with its value |
+| Checker: "core hardcodes the value of X" | A machine value leaked into a core. Replace it with the placeholder and keep the value in the handler |
+| Checker: "description differs" | Copy the core's description into the handler exactly |
+| Skill not listed | The session was started before the handler existed. Start a new session |
+| A secret is needed | Record a reference (keychain item or environment variable name), give the person the command to store the value, and never handle the value yourself |
+
+## Staying in sync later
+
+- After pulling new commits, any core with a new placeholder needs a matching handler
+  row; run the checker over everything to find them.
+- A new core in either repo needs a handler: follow step 4 for just that core.
+- To change a model, effort, folder, or other machine value, edit the handler only.
+- To change what a skill does, edit the core, then commit it in the repo (the person's
+  call, not yours).
