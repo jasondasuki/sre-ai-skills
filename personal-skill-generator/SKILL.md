@@ -9,8 +9,8 @@ You build skills for one person on one machine, and you keep two kinds of
 knowledge apart:
 
 - **The core is what the skill does.** It is general, portable, and safe to
-  commit and share. It lives in the skill's home repo, `<repo>/<skill-name>/`:
-  `{{SECOPS_REPO_DIR}}` for security-related skills, `{{REPO_DIR}}` for the rest.
+  commit and share. It lives in the skill's home repo, `<repo>/<skill-name>/`, chosen
+  from `{{REPO_ROUTES}}` (default `{{REPO_DIR}}`).
 - **The handler is where and how it runs here.** It holds values that belong to
   this computer and this agent setup: working directory, model, effort, MCP
   server names, output folders, and references to secrets. It lives in
@@ -35,8 +35,8 @@ The handler supplies these values; use the placeholders, never literals.
 
 | Variable | Meaning |
 |---|---|
-| `{{REPO_DIR}}` | Root of the general skills repo (reliability, operations, tooling, and this generator) |
-| `{{SECOPS_REPO_DIR}}` | Root of the security skills repo |
+| `{{REPO_DIR}}` | Root of the default skills repo: holds this generator and any skill whose subject has no route |
+| `{{REPO_ROUTES}}` | Routing from a skill's subject to the repo holding its core, as `subject = repo path` entries |
 | `{{SKILLS_DIR}}` | Directory the agent runtime reads personal skills from |
 | `{{CORE_DIR}}` | This skill's own core directory |
 | `{{DEFAULT_MODEL}}` | Model ID given to a new skill when the user names none |
@@ -87,30 +87,23 @@ possible. The goal is to know:
    not. Suggest a default and let the user decide.
 
 Choose the name: lowercase kebab-case, short, specific. Check it is free in
-`{{SKILLS_DIR}}`, in both `{{REPO_DIR}}` and `{{SECOPS_REPO_DIR}}`, and among the
+`{{SKILLS_DIR}}`, in every repo (`{{REPO_DIR}}` and each one in `{{REPO_ROUTES}}`), and among the
 skills already listed in the session including plugin skills. A collision silently shadows one of them, so
 pick another name or ask.
 
 #### Choose the home repo
 
-Two repos hold cores, and the skill's subject decides which:
+More than one repo can hold cores, and the skill's subject decides which. The
+handler's `{{REPO_ROUTES}}` lists entries of the form `subject = repo path`; use the
+entry whose subject matches the skill, and `{{REPO_DIR}}` when none does. Judge the
+subject by the skill's main purpose, say which repo you chose and why, and ask only
+when it is genuinely half and half. Call the chosen repo `<repo>` from here on. The
+repo is part of the skill's identity: moving a skill later means moving the core and
+updating the handler's core path together. Make sure `<repo>` exists and is a git
+repository before you write into it; if it is not, tell the user, because the
+handler's preflight pauses until it is a repository with a remote.
 
-- **`{{SECOPS_REPO_DIR}}`** for security-related skills: vulnerability hunting and
-  code review for security, exposure and attack-surface checks, IAM and permission
-  audits, threat modelling, penetration testing of one's own assets, secrets and
-  credential hygiene, security incident triage, and compliance evidence.
-- **`{{REPO_DIR}}`** for everything else: reliability, operations, observability,
-  infrastructure, and tooling.
-
-If a skill straddles the line, choose by its main purpose and say which you chose;
-ask only when it is genuinely half and half. Call the chosen repo `<repo>` from
-here on. The repo is part of the skill's identity: moving a skill later means
-moving the core and updating the handler's core path together. Make sure `<repo>`
-exists and is a git repository before you write into it; if it is not, tell the
-user, because the handler's preflight pauses until it is a repository with a
-remote.
-
-Security skills carry one extra rule: **the core states the method, never the
+Skills about security assessment carry one extra rule: **the core states the method, never the
 target.** Scope and authorization (which domains, accounts, projects, and ranges
 are in scope and which are out), rules of engagement, and every identifier go in
 the handler as variables, so a core can be reviewed or shared without exposing
@@ -340,7 +333,7 @@ machine values:
 ## Onboarding handlers for existing cores
 
 Handlers are machine-local and not in git, so a new machine has cores and no
-handlers. For each core that lacks a handler in `{{SKILLS_DIR}}`, in either repo:
+handlers. For each core that lacks a handler in `{{SKILLS_DIR}}`, in any repo:
 
 1. Read the core in full. Its "Variables this skill expects" table is the
    contract: one handler row per variable, plus the standard set.
@@ -357,21 +350,20 @@ handlers. For each core that lacks a handler in `{{SKILLS_DIR}}`, in either repo
    and anything the person must choose. Batch the questions for every core into one
    round, and offer a default with each.
 4. Secrets: record references only, per `references/secrets.md`. For a security
-   skill in `{{SECOPS_REPO_DIR}}`, scope and authorization values (what is in and out
-   of scope) must be confirmed explicitly; never assume a target is in scope.
+   assessment skill, scope and authorization values (what is in and out of scope)
+   must be confirmed explicitly; never assume a target is in scope.
 5. Write each handler from `templates/handler.SKILL.md`, copying the description
    exactly from the core, and run the checker on the pair. Never overwrite an
    existing handler without showing what changes.
-6. Leave both repos unchanged. State the defaults you applied so they can be
+6. Leave every repo unchanged. State the defaults you applied so they can be
    overridden, and remind the person that a new session is needed before the
    handlers appear in the skill list.
 
 ## Audit
 
 For each directory in `{{SKILLS_DIR}}` that has a handler pointing at a core (in
-either repo), run the checker and tabulate the results, noting which repo each
-core is in and flagging any security-related core that sits in `{{REPO_DIR}}`
-(or the reverse). Separately list skills that have no
+any repo), run the checker and tabulate the results, noting which repo each core
+is in and flagging any core that sits in a different repo than its subject routes to. Separately list skills that have no
 core (legacy single-file skills, plugin-managed folders, or folders you do not
 recognise) as "not in this layout", and do not modify them.
 
@@ -382,6 +374,6 @@ recognise) as "not in this layout", and do not modify them.
   a credential.
 - `templates/core.SKILL.md` and `templates/handler.SKILL.md`: the two files to
   start from.
-- `{{REPO_DIR}}/ONBOARDING.md`: the guide for setting up both repos on a computer.
+- `{{REPO_DIR}}/ONBOARDING.md`: the guide for setting up the skill repos on a computer.
 - `scripts/check-skill.sh`: the consistency and leak checker.
 - `scripts/preflight.sh`: the branch-and-freshness gate every handler runs first.
