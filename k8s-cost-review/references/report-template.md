@@ -1,11 +1,16 @@
 # Report and evidence outputs
 
 Write in a dated run folder under `{{OUTPUT_DIR}}`, using a filesystem-safe scope
-slug and timestamp to avoid overwrites:
+slug and UTC timestamp to avoid overwrites:
 
 - `k8s-cost-review-YYYY-MM-DD-<scope>.md`
 - `evidence.json`
 - Optional sanitized role-specific evidence files.
+
+Write the finished HTML under `{{HTML_OUTPUT_DIR}}` using `{{REPORT_SKILL}}` and
+its `cost-review` profile. Its title and filename rules govern the HTML name.
+The Markdown/evidence run folder and HTML filename share the review start time
+and scope so the outputs can be matched. Do not overwrite an existing run.
 
 Use this report structure, omitting empty inventory tables but keeping explicit
 source status and an action for missing decisive evidence.
@@ -56,7 +61,43 @@ smallest evidence collection needed to move forward.>
 ## Evidence index
 <IDs mapping to sources/commands/queries/file sections, timestamps, scopes,
 units, aggregations, limitations, and sanitized local evidence files.>
+
+## Report files and provenance
+<Review start and generation times in UTC, actual planner model, collector models
+and parallel/serial mode, absolute Markdown/HTML/evidence paths, HTML markup and
+visual check results or the specific unavailable check.>
 ```
+
+## HTML writer brief
+
+After validating the Markdown and evidence, load `{{REPORT_SKILL}}` and provide:
+
+- **Profile:** `cost-review`.
+- **Output folder:** `{{HTML_OUTPUT_DIR}}` or the user's explicit HTML override.
+- **Page-design skill:** `{{PAGE_DESIGN_SKILL}}` (overrides the writer's default).
+- **Time and title facts:** review start date/time in UTC and the resolved scope
+  label; the HTML writer records its own generation time in UTC.
+- **Producer facts:** producing skill name, live or supplied-evidence mode,
+  actual planner model, actual collector models and parallel/serial execution,
+  contexts/namespaces, history window, currency, pricing basis/date, and
+  `{{MONTH_HOURS}}` or the actual period hours. Use unknown when a fact is absent.
+- **Findings:** validated summary, baseline, complete prioritized action details,
+  combined scenarios, rejected hypotheses, evidence gaps, implementation order,
+  and evidence index. Preserve stable IDs and all limitations.
+- **Source files:** absolute Markdown and evidence paths. Add the returned HTML
+  path and check results to both after generation. Pass only existing source URLs;
+  do not invent links from resource identifiers.
+
+The HTML must retain the full actionable plan and evidence detail, using native
+`details` where useful. Keep capacity benefits separate from currency savings and
+conditional scenarios separate from ready savings in the summary and any visual.
+Use tables/stat tiles when no real time series exists. Follow the page-design
+skill's static checker and desktop/phone, light/dark visual review. Keep rebuild
+helpers beside the Markdown/evidence, with only the finished page in the HTML
+folder. If an output or check is blocked, return the completed paths and the
+specific blocker rather than claiming all formats passed.
+
+## Sanitized evidence JSON
 
 Use JSON with these keys; add details as useful, keeping numbers typed and
 unknowns null rather than zero. Evidence and findings must cross-reference.
@@ -65,6 +106,9 @@ unknowns null rather than zero. Evidence and findings must cross-reference.
 {
   "scope": {"contexts": [], "namespaces": [], "mode": "live-or-supplied"},
   "collected_at": "ISO-8601",
+  "review_started_at": "ISO-8601 UTC",
+  "outputs": {"markdown": null, "html": null, "evidence": null},
+  "report_checks": {"markup": null, "visual": null, "limitations": []},
   "window": {"start": null, "end": null, "coverage_notes": []},
   "sources": [{"name": "source", "status": "available-or-unavailable", "reason": null}],
   "observations": [{

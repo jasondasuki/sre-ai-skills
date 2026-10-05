@@ -17,7 +17,10 @@ The machine-local handler supplies these values.
 | Variable | Meaning |
 |---|---|
 | `{{WORKDIR}}` | Working directory for commands |
-| `{{OUTPUT_DIR}}` | Private local destination for reports and sanitized evidence |
+| `{{OUTPUT_DIR}}` | Private local destination for Markdown reports and sanitized evidence |
+| `{{HTML_OUTPUT_DIR}}` | Private local destination for finished HTML reports |
+| `{{REPORT_SKILL}}` | HTML report writer with the cost-review profile |
+| `{{PAGE_DESIGN_SKILL}}` | Page-design skill passed to the HTML writer |
 | `{{CORE_DIR}}` | Core directory for loading reference files |
 | `{{SUBAGENT_MODEL}}` | Explicit executor model accepted by this runtime |
 | `{{SUBAGENT_TYPE}}` | Evidence-collector agent type |
@@ -83,8 +86,11 @@ trust prose documentation or a repository alone as proof of deployed settings.
 Cloud clients and billing exports are optional, not prerequisites. Discover
 provider project/account/subscription IDs from in-scope cluster evidence.
 
-Create a dated run folder under `{{OUTPUT_DIR}}`. For fixture/offline requests,
-use only the provided evidence: keep provenance as supplied rather than live,
+Record the review start time in UTC and create a dated run folder under
+`{{OUTPUT_DIR}}` for Markdown and evidence. Use `{{HTML_OUTPUT_DIR}}` for the
+finished HTML; honor explicit per-format destination overrides from the user.
+For fixture/offline requests, use only the provided evidence: keep provenance as
+supplied rather than live,
 still execute the handler preflight and load the core, and do not contact clusters,
 cloud APIs, or metrics services. Files can supply every needed observation.
 
@@ -196,7 +202,18 @@ and machine-readable sanitized `evidence.json` in the run folder. Use
 available. Include no credentials or full raw manifests. Read both outputs back
 and verify cited inputs, units, arithmetic, scenario totals, and evidence gaps.
 
+Then load `{{REPORT_SKILL}}` to write the HTML from those validated findings,
+using profile `cost-review`, output folder `{{HTML_OUTPUT_DIR}}`, and the brief
+in the report template. Pass `{{PAGE_DESIGN_SKILL}}` as the page-design skill
+override so it governs layout, accessibility, markup checks, and visual review.
+Follow both skills' handler preflights and core instructions. Keep the same
+finding/evidence IDs, estimates, readiness, assumptions, and gaps in all formats;
+the HTML writer formats the result without re-investigating. Record both report
+paths in the evidence output. Verify HTML content against the Markdown and JSON
+and report the static and visual check results, including any unavailable check.
+
 Return the highest-priority actions, achievable savings range or why currency
-savings cannot yet be estimated, key blockers, and the absolute report path.
+savings cannot yet be estimated, key blockers, and the absolute Markdown, HTML,
+and evidence paths plus the HTML writer's command to view the page.
 Use a brief executive summary; the saved report contains the full action plan.
 Do not present proposed changes as already applied or estimates as realized cost.

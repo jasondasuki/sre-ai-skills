@@ -1,6 +1,6 @@
 ---
 name: investigation-report
-description: Write the finished HTML report document for an investigation or triage - one self-contained, escaped, dark-mode-aware page saved to disk with a dated title and file name, in the report format (profile) the calling skill names. Use whenever a skill or the user needs the report for a completed root-cause investigation (hypothesis tree, evidence, final root cause) or a completed workload triage (what is broken, evidence, narrowest fix), or says "write the report", "make an HTML report", "save this investigation as a document", "report for the triage", or "document what we found" - even if they do not say HTML. Owns the page rules, the title and file name rules, the output folder, and the checks after writing; the investigating skill owns the findings.
+description: Write the finished HTML report document for an investigation, triage, or Kubernetes cost review - one self-contained, escaped, dark-mode-aware page saved to disk with a dated title and file name, in the report format (profile) the calling skill names. Use whenever a skill or the user needs the report for a completed root-cause investigation (hypothesis tree, evidence, final root cause), a completed workload triage (what is broken, evidence, narrowest fix), or a completed cost review (prioritized changes, marginal savings, reliability constraints, evidence), or says "write the report", "make an HTML report", "save this investigation as a document", "report for the triage", "cost review report", or "document what we found" - even if they do not say HTML. Owns the page rules, the title and file name rules, the output folder, and the checks after writing; the producing skill owns the findings.
 ---
 
 # Investigation report
@@ -36,6 +36,7 @@ guess; each one changes the file you write.
 | time and title facts | The date and time (UTC) and the title text the profile's title rule needs |
 | producer facts | The producing skill's name, the mode, the model that actually ran, and anything else the profile's footer lists. The time the report was generated is your own clock when you write it, in UTC, not a value the findings carry |
 | findings | Everything the report says. These are already in the conversation from the producer's own report; do not re-investigate |
+| page-design skill (optional) | Caller-selected design skill; when provided, load it instead of the default `{{PAGE_DESIGN_SKILL}}`. The report profile still governs the title, sections, and filename |
 
 ## Profiles
 
@@ -46,6 +47,7 @@ its visuals. Read the profile file the brief names before you write.
 |---|---|---|
 | `hypothesis-investigation` | A root-cause investigation that tests hypotheses against telemetry | `references/profile-hypothesis-investigation.md` |
 | `triage` | A workload triage that ends in a cause, evidence, and a narrowest fix | `references/profile-triage.md` |
+| `cost-review` | A Kubernetes cost review with prioritized changes, marginal savings, reliability constraints, and evidence | `references/profile-cost-review.md` |
 
 If the brief names a profile not in this table, stop and say so. Do not improvise
 a format: the point of a profile is that the same kind of report always looks the
@@ -59,7 +61,8 @@ same.
    if it does not exist. Folders are per producer, so reports from different
    skills never mix.
 3. **Read the profile** the brief names, in full.
-4. **Load the design skills.** Load `{{PAGE_DESIGN_SKILL}}` and follow its page
+4. **Load the design skills.** Load the brief's page-design skill when provided,
+   otherwise `{{PAGE_DESIGN_SKILL}}`, and follow its page
    contract (colour tokens on `:root`, dark-mode variants, explicit `body`
    background, phone-width layout). Load `{{CHART_SKILL}}` before drawing any chart.
 5. **Write the page** to the file name the profile's rule gives. Never overwrite an
@@ -114,3 +117,4 @@ Each rule has a reason; the reason is what lets you apply it to a case not liste
 - `references/profile-hypothesis-investigation.md`: the hypothesis-tree report
   format, with its diagram section.
 - `references/profile-triage.md`: the workload triage report format.
+- `references/profile-cost-review.md`: the Kubernetes cost-review report format.
