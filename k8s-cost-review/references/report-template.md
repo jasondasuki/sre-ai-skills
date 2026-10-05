@@ -38,7 +38,7 @@ usage and peaks, major workloads/scalers and independently billed resources.>
 |---|---|---|---|---|---|---|
 
 ### <ID>: <action>
-- Target and ownership: <context/resource + actual repo path/key or unknown>.
+- Target and ownership: <context/resource + verified GitHub source link/key or unknown>.
 - Evidence: <evidence IDs; observed values with window and units>.
 - Before -> after: <specific supported config or exact measurement task>.
 - Mechanism: <change -> feasibility -> billable reduction>.
@@ -60,11 +60,11 @@ smallest evidence collection needed to move forward.>
 
 ## Evidence index
 <IDs mapping to sources/commands/queries/file sections, timestamps, scopes,
-units, aggregations, limitations, and sanitized local evidence files.>
+units, aggregations, limitations, and sanitized evidence artifact filenames.>
 
 ## Report files and provenance
 <Review start and generation times in UTC, actual planner model, collector models
-and parallel/serial mode, absolute Markdown/HTML/evidence paths, HTML markup and
+and parallel/serial mode, Markdown/HTML/evidence filenames, HTML markup and
 visual check results or the specific unavailable check.>
 ```
 
@@ -85,8 +85,11 @@ After validating the Markdown and evidence, load `{{REPORT_SKILL}}` and provide:
   combined scenarios, rejected hypotheses, evidence gaps, implementation order,
   and evidence index. Preserve stable IDs and all limitations.
 - **Source files:** absolute Markdown and evidence paths. Add the returned HTML
-  path and check results to both after generation. Pass only existing source URLs;
-  do not invent links from resource identifiers.
+  path as a runtime input only. Store filenames and check results in the saved
+  outputs. Pass verified GitHub URLs for scoped source repositories, derived from
+  their remotes and reviewed commits. Use file/directory links appropriately;
+  do not invent links from resource identifiers. Remove all other local directory
+  paths, including those inside evidence excerpts and provenance.
 
 The HTML must retain the full actionable plan and evidence detail, using native
 `details` where useful. Keep capacity benefits separate from currency savings and

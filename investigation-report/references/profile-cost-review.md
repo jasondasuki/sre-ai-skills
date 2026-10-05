@@ -57,8 +57,8 @@ append `-2`, then `-3`, and so on if the name exists. A follow-up gets a new fil
 9. **Evidence index:** original IDs, commands/queries or supplied file sections,
    timestamps, scope, units, aggregation/window, and limitations. Show only
    sanitized snippets. Use links only for URLs actually supplied by the brief.
-10. **Report files and provenance:** Markdown and evidence paths, the final HTML
-    path, static and visual check status (or exact blocker), and a footer naming
+10. **Report files and provenance:** Markdown, evidence, and final HTML filenames,
+     static and visual check status (or exact blocker), and a footer naming
     the producer, actual planner and collector models, parallel/serial mode,
     review scope, estimation period hours, and generation time in UTC.
 
@@ -93,3 +93,6 @@ must remain accessible; summary cards do not replace action/evidence details.
   retention dependencies, and GKE allocation gaps beside the affected estimates.
 - Follow the selected page-design skill's markup checker and desktop/phone,
   light/dark render checks. Report unavailable checks honestly in provenance.
+- Apply the shared core's portable-reference rules throughout the page, including
+  expanded evidence blocks: verified GitHub links for scoped repository sources,
+  filenames for companion artifacts, and no machine-local directory paths.
