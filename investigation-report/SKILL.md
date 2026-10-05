@@ -1,6 +1,6 @@
 ---
 name: investigation-report
-description: Write the finished HTML report document for an investigation, triage, or Kubernetes cost review - one self-contained, escaped, dark-mode-aware page saved to disk with a dated title and file name, in the report format (profile) the calling skill names. Use whenever a skill or the user needs the report for a completed root-cause investigation (hypothesis tree, evidence, final root cause), a completed workload triage (what is broken, evidence, narrowest fix), or a completed cost review (prioritized changes, marginal savings, reliability constraints, evidence), or says "write the report", "make an HTML report", "save this investigation as a document", "report for the triage", "cost review report", or "document what we found" - even if they do not say HTML. Owns the page rules, the title and file name rules, the output folder, and the checks after writing; the producing skill owns the findings.
+description: Write the finished HTML report document for an investigation, triage, Kubernetes cost review, or incident postmortem - one self-contained, escaped, dark-mode-aware page saved to disk with a dated title and file name, in the report format (profile) the calling skill names. Use whenever a skill or the user needs the report for a completed root-cause investigation (hypothesis tree, evidence, final root cause), a completed workload triage (what is broken, evidence, narrowest fix), or a completed cost review (prioritized changes, marginal savings, reliability constraints, evidence), or a completed incident postmortem (timeline, impact, root cause, action items), or says "write the report", "make an HTML report", "save this investigation as a document", "report for the triage", "cost review report", "postmortem report", or "document what we found" - even if they do not say HTML. Owns the page rules, the title and file name rules, the output folder, and the checks after writing; the producing skill owns the findings.
 ---
 
 # Investigation report
@@ -48,6 +48,7 @@ its visuals. Read the profile file the brief names before you write.
 | `hypothesis-investigation` | A root-cause investigation that tests hypotheses against telemetry | `references/profile-hypothesis-investigation.md` |
 | `triage` | A workload triage that ends in a cause, evidence, and a narrowest fix | `references/profile-triage.md` |
 | `cost-review` | A Kubernetes cost review with prioritized changes, marginal savings, reliability constraints, and evidence | `references/profile-cost-review.md` |
+| `postmortem` | A resolved incident with timeline, impact, final root cause, and action items | `references/profile-postmortem.md` |
 
 If the brief names a profile not in this table, stop and say so. Do not improvise
 a format: the point of a profile is that the same kind of report always looks the
@@ -118,3 +119,4 @@ Each rule has a reason; the reason is what lets you apply it to a case not liste
   format, with its diagram section.
 - `references/profile-triage.md`: the workload triage report format.
 - `references/profile-cost-review.md`: the Kubernetes cost-review report format.
+- `references/profile-postmortem.md`: the incident postmortem report format.
