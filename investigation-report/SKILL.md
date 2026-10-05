@@ -73,8 +73,10 @@ same.
    Link to an object only when the brief carries its URL; otherwise show its ID as
    plain text, because a guessed link is a wrong link.
 6. **Check it.** The file exists and is not empty; the `<title>` and the `<h1>` are
-   the same string and match the profile's title rule; every section the profile
-   lists is present, in order; nothing from telemetry sits unescaped.
+    the same string and match the profile's title rule; every section the profile
+    lists is present, in order; nothing from telemetry sits unescaped. Apply the
+    portable-reference rules below to prose, links, code blocks, and embedded
+    evidence; verify that no machine-local directory path remains.
 7. **Hand back** the full path and the command to view it, which is
    `{{OPEN_COMMAND}}` followed by the path. The producer puts these at the end of
    its chat reply.
@@ -109,6 +111,19 @@ Each rule has a reason; the reason is what lets you apply it to a case not liste
 - **Same content as the chat report.** The HTML is the same findings in a better
   container, not new claims. Anything in it traces to evidence the producer
   recorded.
+- **Portable references.** Replace paths inside the producer's scoped source
+  repositories with verified GitHub links. Resolve the repository from its actual
+  remote, normalize SSH remotes to HTTPS, and prefer the reviewed commit. Use
+  `blob` for files and `tree` for directories; link a wildcard to its verified
+  parent directory and keep the pattern as text. Preserve known line anchors.
+  Never infer the organization from a checkout folder or invent a missing target.
+  Remove all other machine-local directory paths, including home shorthand,
+  file URLs, temporary/preview directories, output folders, and commands that
+  expose them. Keep a standalone artifact filename when it is useful for a
+  citation; omit directory-only references. Apply this to Markdown/JSON excerpts
+  as well as visible HTML, and render source links as clickable links outside
+  literal evidence blocks. Absolute paths needed to read/write or open files
+  belong in runtime inputs and the handoff chat, not the saved document.
 - **Do not publish it.** Do not call a page-publishing tool, and do not upload the
   file anywhere. It stays a local file unless the user asks to share it; then offer
   to publish it as a private hosted page when a publishing tool is available.

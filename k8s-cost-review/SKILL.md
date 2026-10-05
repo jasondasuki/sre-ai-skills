@@ -199,7 +199,14 @@ even when marginal cash savings are zero or pricing is missing.
 Use `{{CORE_DIR}}/references/report-template.md` to write a dated Markdown report
 and machine-readable sanitized `evidence.json` in the run folder. Use
 `{{MONTH_HOURS}}` for labeled monthly run rates unless actual period hours are
-available. Include no credentials or full raw manifests. Read both outputs back
+available. Replace scoped source-repository paths with verified HTTPS GitHub
+links derived from the actual remotes and reviewed revisions: `blob` for files,
+`tree` for directories, and a verified parent link plus text for wildcard patterns.
+Remove other local directory paths throughout Markdown, JSON, HTML, embedded
+evidence, and provenance; retain only useful standalone artifact filenames.
+Keep absolute execution/output locations in runtime inputs and the final chat,
+not the saved documents. Pass these verified source URLs to the HTML writer.
+Include no credentials or full raw manifests. Read both outputs back
 and verify cited inputs, units, arithmetic, scenario totals, and evidence gaps.
 
 Then load `{{REPORT_SKILL}}` to write the HTML from those validated findings,
@@ -209,8 +216,10 @@ override so it governs layout, accessibility, markup checks, and visual review.
 Follow both skills' handler preflights and core instructions. Keep the same
 finding/evidence IDs, estimates, readiness, assumptions, and gaps in all formats;
 the HTML writer formats the result without re-investigating. Record both report
-paths in the evidence output. Verify HTML content against the Markdown and JSON
+filenames in the evidence output. Verify HTML content against the Markdown and JSON
 and report the static and visual check results, including any unavailable check.
+Check every saved report for machine-local path remnants and confirm source
+links use the verified repository, revision, and file/directory target.
 
 Return the highest-priority actions, achievable savings range or why currency
 savings cannot yet be estimated, key blockers, and the absolute Markdown, HTML,
