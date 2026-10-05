@@ -19,7 +19,8 @@ literal path, cluster, namespace, or credential in this file.
 | Variable | Meaning |
 |---|---|
 | `{{WORKDIR}}` | Working directory for all commands |
-| `{{OUTPUT_DIR}}` | Where a written report goes, only when the user asks for one |
+| `{{OUTPUT_DIR}}` | This skill's own folder for HTML reports, passed to the report skill |
+| `{{REPORT_SKILL}}` | Skill that writes the HTML report document from the finished findings |
 | `{{DEBUG_ALLOWED_CONTEXTS}}` | kubectl contexts where this skill may create debug containers without asking first |
 | `{{DEBUG_IMAGE}}` | Image for debug containers (needs `sh`, `nc`, `wget`, `nslookup`, `ps`) |
 | `{{DEBUG_SLEEP_SECONDS}}` | How long a debug container sleeps before it exits on its own |
@@ -38,7 +39,8 @@ literal path, cluster, namespace, or credential in this file.
    skill; propose them as the fix and let the user run them.
 3. **Fewest debug containers.** Each one is permanent clutter on the pod. Reuse one
    sleeping container for every check on that pod, name it `dbg-<purpose>`, and
-   give it a sleep that ends on its own.
+   give it a sleep that ends on its own. A pod may already list ephemeral containers from earlier
+   sessions: they are not yours, so do not reuse them or report them as created.
 4. **Secrets never travel in a command line, an `--env`, or a log.** An `--env` or
    an argument is stored in the pod spec where anyone who can read pods can read it.
    Use the container's own environment, or pipe the value over stdin (see
@@ -118,6 +120,28 @@ State the cause only as strongly as the evidence allows. If two causes fit, name
 both and the one check that separates them. Stop investigating once the cause is
 established; do not widen into unrelated findings.
 
+### 6. Write the report
+
+Every triage that read from the cluster ends with an HTML report saved to disk, so
+the finding outlives the conversation. Do this after the chat answer, without being
+asked, unless the user said they want only the answer.
+
+Use the skill `{{REPORT_SKILL}}` to write it: load it with the skill tool, or read
+its handler file if skill loading is unavailable. It owns the page, the title and
+file name rules, the escaping and secrets rules, and the checks after writing, so
+none of that is repeated here. Give it this brief:
+
+- **profile:** `triage`.
+- **output folder:** `{{OUTPUT_DIR}}`. This skill's reports go there and nowhere else.
+- **time and title facts:** the time the triage started in UTC, the namespace and
+  workload, and the symptom in a few words.
+- **producer facts:** this skill's name, the cluster context, how many commands you
+  ran, and the model that actually ran.
+- **findings:** the chat answer in full, the exact evidence line with the command
+  that produced it, the checks that mattered, and every debug container you created.
+  The page is the same findings in a better container, so add nothing the chat
+  answer does not say.
+
 ## Debug container recipe
 
 Plain `kubectl debug --image=<tools>` fails on the workloads this skill most often
@@ -159,8 +183,9 @@ meets, and the failures have specific causes. Work through these in order.
 
 ## Output
 
-Reply in chat in this shape. Write a file under `{{OUTPUT_DIR}}` only if the user
-asks for a report.
+Reply in chat in this shape. The report in step 6 carries the same findings in
+full; the chat answer stays short and ends with the path and open command the report
+skill gave back.
 
 ```
 Context: <kubectl context>   Target: <namespace/kind/name>
@@ -170,4 +195,5 @@ Evidence: <the exact event, log line, status field, or probe result, with its so
 Narrowest fix: <the smallest change that addresses it, and who runs it>
 Not verified: <what you could not see, or the next check if inconclusive>
 Created: <debug containers added, with names, or "nothing; read-only">
+Report: <full path to the HTML report> (open with <open command>)
 ```

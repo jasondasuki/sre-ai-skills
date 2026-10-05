@@ -29,7 +29,7 @@ literal path, model, MCP server name, or skill name in this file.
 | Variable | Meaning |
 |---|---|
 | `{{WORKDIR}}` | Working directory for shell commands |
-| `{{OUTPUT_DIR}}` | Folder the HTML reports are written to |
+| `{{OUTPUT_DIR}}` | This skill's own folder for HTML reports, passed to the report skill |
 | `{{MODEL}}` | Model running this skill (the planner), cited in the report footer |
 | `{{SUBAGENT_MODEL}}` | Model every executor subagent runs on |
 | `{{SUBAGENT_TYPE}}` | Subagent type used for executors; it must have the Datadog MCP tools |
@@ -42,8 +42,7 @@ literal path, model, MCP server name, or skill name in this file.
 | `{{DEEP_PROBE_QUERY_LIMIT}}` | Most queries one probe may spend in a deep run |
 | `{{DATADOG_MCP_PREFIX}}` | Prefix of the Datadog MCP's tool names in this runtime |
 | `{{DATADOG_SITE}}` | Datadog site the connected MCP serves |
-| `{{PAGE_DESIGN_SKILL}}` | Skill that governs the page contract for HTML output |
-| `{{CHART_SKILL}}` | Skill that governs charts, loaded before drawing the time chart in the report |
+| `{{REPORT_SKILL}}` | Skill that writes the HTML report document from the finished findings |
 | `{{DOCS_DIR}}` | Documentation repo for the platform under investigation; read it before concluding a metric, log, or service has no data |
 
 ## Rules of engagement
@@ -367,7 +366,7 @@ Open with the answer: the root cause, or "no root cause established". Then:
 ## Final root cause
 <the last section: the constructed causal chain (trigger, mechanism, why it
  crossed the alert threshold, recovery; then ruled out, still open, contributing,
- confidence). Shape and rules are in references/report-visuals-and-root-cause.md;
+ confidence). Shape and rules are in references/final-root-cause.md;
  read it now.>
 ```
 
@@ -391,78 +390,30 @@ Every finished investigation (including an inconclusive one) ends with a
 self-contained HTML report saved to disk. Do this after the report in Step 6,
 without being asked.
 
-**Location:** `{{OUTPUT_DIR}}/`. Create the directory with `mkdir -p` if it does
-not exist.
+Use the skill `{{REPORT_SKILL}}` to write it: load it with the skill tool, or read
+its handler file if skill loading is unavailable. It owns the page, the title and
+file name rules, the escaping and secrets rules, and the checks after writing, so
+none of that is repeated here. Give it this brief:
 
-**Report title (required):** every report's title contains the date, the time,
-and the incident title:
+- **profile:** `hypothesis-investigation`. That profile is the report format this
+  skill produces; do not ask for a different one.
+- **output folder:** `{{OUTPUT_DIR}}`. This skill's reports go there and nowhere else.
+- **time and title facts:** `T0` in UTC (the earliest `T0` for several alarms), and
+  the incident title as the profile's title rule describes.
+- **producer facts:** this skill's name; the mode (normal or deep); the planner
+  model that actually ran (`{{MODEL}}`, or the real one if it differs); the executor
+  model (`{{SUBAGENT_MODEL}}` in a normal run, `{{DEEP_SUBAGENT_MODEL}}` in a deep
+  run); the number of rounds and probes; and the original alarm links.
+- **findings:** everything in the Step 6 report, plus, in a deep run, the extra
+  lines `references/deep-investigation.md` lists. The page is the same findings in
+  a better container, so add nothing the Step 6 report does not say.
 
-```
-YYYY-MM-DD HH:MM UTC - <incident title>
-```
+Do not publish the report; the report skill keeps it a local file.
 
-- **Date and time** are `T0`, when the alarm fired or the incident began, in
-  UTC (for several alarms in one cluster, the earliest `T0`). Always say `UTC`.
-  The time the report was generated goes in the header and footer, not the title.
-- **Incident title** is the name Datadog uses: the incident's title, else the
-  monitor's name (with template variables like `{{host.name}}` filled in from
-  the alerting group, or dropped), else a short plain description you write
-  from the problem statement ("checkout 5xx spike after deploy"). Keep it
-  under about 90 characters, trimming the middle rather than the ends. For
-  several unrelated alarms, name the root-cause alarm, then " (+N more)".
-- Example: `2026-10-02 14:02 UTC - [prod] checkout p99 latency above 2s`.
-
-Use this exact string in all three places: the `<title>` element, the page
-`<h1>`, and the `title` you would pass if the report is later published. This
-is a deliberate exception to the two-to-four-word title guidance in
-`{{PAGE_DESIGN_SKILL}}`; the user's rule wins, so do not shorten it.
-
-**Filename:** `YYYY-MM-DD-HHMM-<slug>.html`, using the same `T0` date and time
-as the title (UTC) and a short kebab-case slug of the service and symptom (for
-example `2026-10-02-1402-checkout-latency.html`). A deep run adds `-deep` to the
-slug (`2026-10-02-1402-checkout-latency-deep.html`). Never overwrite an existing
-report; if the name exists, append `-2`. For a follow-up on the same alarm,
-write a new file and link back to the earlier one.
-
-**Before writing**, load the `{{PAGE_DESIGN_SKILL}}` skill and follow its page
-contract (colour tokens on `:root`, dark-mode
-variants, explicit `body` background, phone-width layout). Load `{{CHART_SKILL}}` before
-drawing the time chart in the diagram section. Use a warm, restrained visual style: warm neutral surface, generous
-whitespace, a serif or humanist heading face with a system sans body, soft
-rounded cards, and one restrained accent colour. Everything is inline: one
-file, inline CSS, no external fonts or scripts unless `{{PAGE_DESIGN_SKILL}}` allows
-them. Small inline JS is fine (for example expand/collapse).
-
-**Sections, in order:** header (with confidence, status, and mode pills), root
-cause card, diagram, impact tiles, alarms investigated, timeline, hypothesis tree,
-evidence, next steps, gaps, method, final root cause, footer. Read
-`references/html-report-sections.md` for what each section holds before you write
-the page; the diagram and the final root cause also have their own spec in
-`references/report-visuals-and-root-cause.md`.
-
-**Hard rules for the HTML:**
-
-- **Escape everything** you interpolate: queries, log messages, tag values, and
-  titles contain `<`, `>`, `&`, and quotes. Use proper HTML escaping so nothing
-  from telemetry can render as markup or script. Do not use `innerHTML` on
-  telemetry strings.
-- **No secrets or customer data.** The same rule as in the chat report:
-  name the type and location, never the value. No emails, tokens, message
-  bodies, or full request payloads.
-- **No invented data.** Charts and numbers come only from results you actually
-  retrieved. If a chart needs points you did not fetch, show a table or a stat
-  tile instead. Never draw a plausible-looking curve.
-- **Same content as the chat report.** The HTML is the same findings in a
-  better container, not new claims. Anything in the HTML must trace to a query
-  in its Evidence section.
-- Do not publish it. Do not call a page-publishing tool, and do not upload the
-  file anywhere. It stays a local file unless the user asks to share it.
-
-**After writing:** check the file exists and is non-empty, then end the chat
-reply with a short summary (root cause, confidence, one line on next steps)
-and the full path to the report, plus the platform's open command to view it
-(for example `open <path>` on macOS). If they want to share it, offer to publish
-it as a private hosted page, when a publishing tool is available.
+**After writing:** end the chat reply with a short summary (root cause, confidence,
+one line on next steps) and the full path and open command the report skill gave
+back. If they want to share it, offer to publish it as a private hosted page, when
+a publishing tool is available.
 
 ## Failure modes to avoid
 
