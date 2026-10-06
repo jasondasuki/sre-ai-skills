@@ -66,6 +66,14 @@ The machine-local handler supplies these values.
 
 ### 1. Establish scope and available sources
 
+First confirm that the request's primary goal is cost optimization. A follow-up
+investigating packet loss, port exhaustion, failures, root cause, reliability, or
+operational capacity is an investigation even when it arose during a cost review
+or includes a pricing comparison. Route it to the appropriate investigation
+workflow and report profile before creating output files. Carry forward relevant
+existing evidence, but use investigation destinations for both HTML and
+Markdown/evidence; do not inherit this skill's cost-review output defaults.
+
 Extract named contexts, namespaces, time window, environments, currency, and cost
 goals from the request. Otherwise use explicit defaults from `{{KUBE_CONTEXTS}}`.
 For context discovery, list context names and read only the current-context name;
