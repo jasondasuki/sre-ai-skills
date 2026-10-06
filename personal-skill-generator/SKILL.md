@@ -246,6 +246,17 @@ unverified check is not a pass. On a pause, the handler tells the user what was
 found and the fix commands, sends a short notification if a notification tool
 exists, and waits; "proceed anyway" runs once and is noted in the final answer.
 Uncommitted changes and unpushed commits are reported as notes, not as pauses.
+
+A single request can run several handlers (one skill chaining to another, or
+parallel subagents), and each runs the script, so a passing result is remembered
+per repo, branch, and remote for `PREFLIGHT_TTL` seconds (default 600; `0` turns
+it off). Only the first run fetches; later runs print `PREFLIGHT: ok` with a
+"fetch skipped" note, and parallel runs wait for the first instead of all
+fetching. The memory lives in a `skill-preflight` folder under the user cache directory, is dropped when the
+repo's `HEAD` moves, and is never written for a pause. The branch, behind, and
+uncommitted checks still run on every call. The script cannot see where a
+request starts, so a new request inside the window also reuses the result.
+
 Never edit this step out of a handler to make a skill run; change the variables
 or fix the repo instead.
 
