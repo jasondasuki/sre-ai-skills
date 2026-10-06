@@ -52,9 +52,11 @@ report; if the name exists, append `-2`.
    entries have times, show the list alone.
 5. **Root cause:** the final root cause exactly as the brief gives it: trigger,
    mechanism, why it crossed the alert threshold, recovery, then ruled out, still
-   open, contributing factors, and confidence. Name the investigation report it came
-   from by its path. When none was established, the section says "Root cause not
-   established" and shows the leading hypothesis labelled as one.
+   open, contributing factors, and confidence. Name the investigation or triage
+   report it came from by its path. Show a link the brief marks "not established"
+   (common when the cause came from a triage) as written; never fill it in. When
+   none was established, the section says "Root cause not established" and shows
+   the leading hypothesis labelled as one.
 6. **Detection and response:** how it was noticed and how long after impact began;
    what was tried, in order; what worked; options proposed and not taken.
 7. **What went well, what went badly, where we were lucky:** three short lists.

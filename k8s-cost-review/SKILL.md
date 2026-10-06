@@ -95,6 +95,12 @@ still execute the handler preflight and load the core, and do not contact cluste
 cloud APIs, or metrics services. Files can supply every needed observation.
 
 Read `{{CORE_DIR}}/references/evidence-guide.md` before dispatching collectors.
+Read `{{CORE_DIR}}/references/deterministic-tools.md` and use its bundled inventory
+helper once for Kubernetes-shaped admitted state. In fixture mode use `--input`
+and the exact supplied context; never issue live calls. Reuse the resulting
+sanitized inventory across collectors. Narrative-only fixtures can supply the
+same observations without fabricating Kubernetes objects. Record unavailable
+sources and unresolved accounting as gaps, not zero demand.
 Read `{{CORE_DIR}}/references/subagent-brief.md` and fill its complete brief.
 For GKE, also read `{{CORE_DIR}}/references/gke-official-guidance.md` and include
 its billing/allocation checks in the collector briefs. Determine billing per
@@ -132,6 +138,10 @@ for uncertainties that could change the highest-value recommendations.
 ### 3. Validate proposals and billing consequences
 
 Read `{{CORE_DIR}}/references/savings-method.md` before ranking or calculating.
+Use the bundled Decimal calculator for every priced baseline-versus-proposed
+scenario, including fixed obligations and offsetting charges. Save its input and
+result beside the evidence; validate the rate/resource mapping yourself. Use
+null savings for missing rates, and do not sum alternative scenario outputs.
 Re-read decisive source records or repeat targeted queries yourself. For each
 candidate connect these steps:
 
@@ -197,7 +207,11 @@ even when marginal cash savings are zero or pricing is missing.
 ### 5. Save results and summarize
 
 Use `{{CORE_DIR}}/references/report-template.md` to write a dated Markdown report
-and machine-readable sanitized `evidence.json` in the run folder. Use
+and machine-readable sanitized `evidence.json` in the run folder, conforming to
+`{{CORE_DIR}}/references/evidence.schema.json`. Run the bundled evidence validator,
+resolve failures, and generate canonical `report-facts.json` for both reports.
+Embed that contract in Markdown and pass it to the HTML writer as described in
+the deterministic tools reference. Use
 `{{MONTH_HOURS}}` for labeled monthly run rates unless actual period hours are
 available. Replace scoped source-repository paths with verified HTTPS GitHub
 links derived from the actual remotes and reviewed revisions: `blob` for files,
@@ -218,6 +232,9 @@ finding/evidence IDs, estimates, readiness, assumptions, and gaps in all formats
 the HTML writer formats the result without re-investigating. Record both report
 filenames in the evidence output. Verify HTML content against the Markdown and JSON
 and report the static and visual check results, including any unavailable check.
+Run the final validator with both report paths, save `report-contract-checks.json`,
+and inspect the visible findings/tables against the validated contract. Embedded
+JSON equality verifies the handoff facts, not the rendered prose or feasibility.
 Check every saved report for machine-local path remnants and confirm source
 links use the verified repository, revision, and file/directory target.
 

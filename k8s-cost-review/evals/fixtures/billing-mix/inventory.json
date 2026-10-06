@@ -1,0 +1,13 @@
+{
+  "context": "sandbox-b",
+  "version": "v1.35.2",
+  "nodes": [
+    {"metadata": {"name": "cpu-pool-0"}, "status": {"allocatable": {"cpu": "8", "memory": "32Gi"}}},
+    {"metadata": {"name": "hardware-pool-0"}, "spec": {"providerID": "synthetic://hardware/0"}, "status": {"allocatable": {"cpu": "16", "memory": "64Gi", "nvidia.com/gpu": "1"}}},
+    {"metadata": {"name": "hardware-pool-1"}, "spec": {"providerID": "synthetic://hardware/1"}, "status": {"allocatable": {"cpu": "16", "memory": "64Gi", "nvidia.com/gpu": "1"}}}
+  ],
+  "pods": [
+    {"metadata": {"name": "frontend-0", "namespace": "apps"}, "spec": {"nodeName": "cpu-pool-0", "containers": [{"name": "app", "resources": {"requests": {"cpu": "1", "memory": "2Gi"}}}]}, "status": {"phase": "Running"}},
+    {"metadata": {"name": "inference-0", "namespace": "models"}, "spec": {"nodeName": "hardware-pool-0", "nodeSelector": {"hardware-class": "accelerator-x"}, "containers": [{"name": "engine", "resources": {"requests": {"cpu": "8", "memory": "32Gi", "nvidia.com/gpu": "1"}}}]}, "status": {"phase": "Running"}}
+  ]
+}

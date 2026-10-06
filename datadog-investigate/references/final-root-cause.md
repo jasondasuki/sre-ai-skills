@@ -11,9 +11,10 @@ owned by the report skill's `hypothesis-investigation` profile.
 
 ## Final root cause: the closing chain
 
-The last content section of the report, and the end of the chat reply. The
-opening "Root cause" is the quick answer; this is the argument that earns it, and
-the two must agree.
+The last content section of the report, and, in short form, the close of the chat
+reply, where only the report path follows it (Step 7 of the core sets the order).
+The opening "Root cause" is the quick answer; this is the argument that earns it,
+and the two must agree.
 
 Write it after all the evidence is in, in this shape:
 
@@ -28,7 +29,8 @@ Then, as short labelled lines:
 - **Ruled out:** the branches the data rejected.
 - **Still open:** links in the chain the data could not reach.
 - **Contributing factors:** why it was worse or slower to detect.
-- **Confidence:** high, medium, or low, with the reason.
+- **Confidence:** high, medium, or low, on the scale in Step 6's rules, with the
+  reason.
 
 Every link cites the evidence IDs behind it and uses only validated nodes of the
 hypothesis tree. An unproven link is named as open and is never filled in with a

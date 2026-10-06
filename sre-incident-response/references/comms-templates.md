@@ -16,9 +16,9 @@ next update comes.
 
 ## Rules for every draft
 
-- **State only what is established.** Do not name a cause until the investigation
-  skill has reported one with at least medium confidence, and then say "we believe"
-  unless it is high.
+- **State only what is established.** Do not name a cause until an investigator
+  (the telemetry investigation or the cluster triage) has reported one with medium
+  or high confidence, and then say "we believe" unless it is high.
 - **Describe user impact, not internals.** No hostnames, cluster names, ticket
   numbers, secrets, or customer data.
 - **Always give the next update time** in UTC (and the local time if the user gave

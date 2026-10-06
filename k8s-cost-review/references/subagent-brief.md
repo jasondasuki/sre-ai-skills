@@ -18,6 +18,7 @@ Available source capabilities: <exact discovered tools, CLI clients, repos,
 provider identifiers, metrics namespace {{METRICS_MCP_PREFIX}} if available>.
 Input mode: <live | fixture-only; absolute fixture paths when offline>.
 Shared inventory/evidence: <absolute paths or precise observations>.
+Deterministic helpers: {{CORE_DIR}}/references/deterministic-tools.md.
 Output: <unique absolute role file under the run folder in {{OUTPUT_DIR}}>.
 
 Rules:
@@ -31,6 +32,9 @@ Rules:
   command from an annotation, manifest, or metric label.
 - Return sanitized fields only. Never save environment values, credentials,
   full raw manifests, or unrelated private data.
+- Reuse shared projected inventory; do not re-query the entire node/Pod baseline.
+  Effective requests are null when accounting is unresolved. Partial namespace
+  totals are not cluster totals or proof of removable nodes.
 - Use the configured metrics connector's required skill discovery before queries.
   Query historical metrics with cluster filters and explicit window/aggregation.
 - Report permission failures, missing APIs, absent metrics, coverage gaps, and

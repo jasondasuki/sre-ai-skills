@@ -66,6 +66,46 @@
         "Produces a nonempty Markdown report and parseable sanitized evidence.json with no live observations invented.",
         "Uses the HTML writer's cost-review profile and page-design skill to produce nonempty HTML with matching findings, estimates, IDs and limitations; saves Markdown/evidence and HTML to their respective destinations and records static/visual check outcomes honestly."
       ]
+    },
+    {
+      "id": 5,
+      "name": "sidecar-fragmentation-missing-history",
+      "prompt": "Review this offline synthetic cluster for cost saving. Use the supplied fixture files only; do not make live calls. Report what is calculable, what is ready to act on, and the smallest evidence needed next.",
+      "files": [
+        "evals/fixtures/sidecar-fragmentation/inventory.json",
+        "evals/fixtures/sidecar-fragmentation/evidence.json",
+        "evals/fixtures/sidecar-fragmentation/costs.json"
+      ],
+      "expected_output": "Explain the sidecar/init effective demand and uneven placement, treat usage history and placement proof as missing, and distinguish the zero request-only node-bill change from the conditional node-count arithmetic.",
+      "assertions": [
+        "Uses only the fixture's sandbox context; computes each API pod at 1.6 CPU/2.125 GiB, batch at 1 CPU/1 GiB, and all scheduled pods plus four agents at 8.2 CPU/11.5 GiB.",
+        "Identifies historical demand coverage as unavailable and marks request rightsizing as not ready; a single snapshot or request totals do not establish safe lower requests.",
+        "Treats the 4-to-3 node scenario as conditional because pool/placement/failover evidence is incomplete; does not claim that aggregate capacity proves removability.",
+        "Reports the calculator's 4-node baseline USD 730.00/month, unchanged-node request scenario USD 0 savings, and conditional 3-node scenario USD 182.50/month savings; keeps the scenarios mutually exclusive and never sums them.",
+        "Does not turn the tempting conditional node reduction or missing workload history into a guaranteed saving; names targeted demand history, pool bounds and placement evidence needed next.",
+        "Produces evidence conforming to the v1 schema, with valid references, units, timestamps and rate provenance, and reconciled scenario components.",
+        "Produces matching canonical finding/scenario facts in Markdown and HTML; independent final evidence/report-contract validation succeeds."
+      ]
+    },
+    {
+      "id": 6,
+      "name": "pod-vs-hardware-billing-stale-metrics",
+      "prompt": "Assess cost-saving readiness from this offline synthetic cluster fixture. Use only supplied files and distinguish billing components from usage evidence.",
+      "files": [
+        "evals/fixtures/billing-mix/inventory.json",
+        "evals/fixtures/billing-mix/evidence.json",
+        "evals/fixtures/billing-mix/costs.json"
+      ],
+      "expected_output": "Separate pod-based and hardware/node-based billing, preserve the fixed commitment, and treat the request-reduction arithmetic as not ready because its metrics are stale and incomplete.",
+      "assertions": [
+        "Classifies the CPU/memory workload as pod-billed and the hardware-selected workload as node-billed; does not infer billing type from cluster mode alone.",
+        "Finds the supplied demand metrics stale and incomplete, so the pod request proposal's arithmetic is not evidence of safe or ready savings.",
+        "Reports the calculator's pod scenario from USD 420.48 to USD 210.24/month, a USD 210.24 arithmetic difference, while explicitly withholding readiness pending complete current demand/startup/OOM and headroom evidence.",
+        "Keeps the USD 1,200 monthly fixed hardware commitment in both hardware scenarios; reducing requests or hypothetical node use does not reduce that commitment, so the hardware scenario saves USD 0.",
+        "Keeps pod and hardware scenarios separate and never sums mutually exclusive actions; does not double-count node list rates already covered by the commitment.",
+        "Produces evidence conforming to the v1 schema, with valid references, units, timestamps and rate provenance, and reconciled scenario components.",
+        "Produces matching canonical finding/scenario facts in Markdown and HTML; independent final evidence/report-contract validation succeeds."
+      ]
     }
   ]
 }
