@@ -20,6 +20,7 @@ literal path, model, or skill name in this file.
 |---|---|
 | `{{WORKDIR}}` | Working directory for shell commands |
 | `{{OUTPUT_DIR}}` | Root folder for reports when the caller names no folder of its own |
+| `{{INVESTIGATION_OUTPUT_DIR}}` | Fallback folder for investigations when a caller incorrectly supplies a cost-review destination |
 | `{{PAGE_DESIGN_SKILL}}` | Skill that governs the page contract for HTML output |
 | `{{CHART_SKILL}}` | Skill that governs charts, loaded before drawing any chart |
 | `{{OPEN_COMMAND}}` | Command that opens a file for viewing on this machine |
@@ -58,9 +59,16 @@ same.
 
 1. **Check the brief** has every field above, and that the findings are complete
    (a report written from half a result misleads the reader who trusts it).
-2. **Pick the folder.** Use the caller's output folder and create it with `mkdir -p`
-   if it does not exist. Folders are per producer, so reports from different
-   skills never mix.
+2. **Pick the folder by the report's purpose.** Use the caller's output folder
+   and create it with `mkdir -p` if it does not exist. Cost-review destinations
+   are reserved for reviews whose primary goal is cost optimization. A report
+   investigating failures, root cause, reliability, or operational capacity belongs
+   in an investigation destination, even if it discusses prices or reuses cost-review
+   evidence. If the caller supplied its cost-review default for an investigation,
+   use `{{INVESTIGATION_OUTPUT_DIR}}` and return the corrected path. Preserve a
+   suitable producer-specific investigation folder and explicit user destination
+   overrides. Check that the brief's profile also matches the purpose; have the
+   producer correct a cost-review brief used for an investigation before writing.
 3. **Read the profile** the brief names, in full.
 4. **Load the design skills.** Load the brief's page-design skill when provided,
    otherwise `{{PAGE_DESIGN_SKILL}}`, and follow its page
