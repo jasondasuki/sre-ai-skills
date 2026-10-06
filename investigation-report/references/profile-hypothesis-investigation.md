@@ -50,8 +50,9 @@ write a new file and link back to the earlier one.
 1. **Header:** the `<h1>` is the report title exactly as the Title section above defines it
    (date, time, incident title). Beneath it: the UTC incident window, the time the
    report was generated, a confidence pill (high / medium / low), an overall
-   status pill (root cause found / inconclusive), and a mode pill ("Normal
-   investigation" or "Deep investigation").
+   status pill derived from it (root cause found for high or medium; inconclusive
+   for low, or no root cause), and a mode pill ("Normal investigation" or "Deep
+   investigation").
 2. **Root cause card:** the one or two sentence answer, the trigger vs root
    cause vs contributing factors, and why the confidence is what it is.
 3. **Diagram - how the delay builds up:** a clear visual of the mechanism, in up
@@ -75,8 +76,8 @@ write a new file and link back to the earlier one.
    (monitor, trace, incident, change story) when you have its URL. When a
    documentation lookup (Step 5, "No data is a finding about the data") changed
    which names you queried, record the document and what it corrected.
-9. **Next steps:** split into "do now" and "follow up", each marked with whether
-   it needs an owner's decision.
+9. **Next steps:** split into "do now" and "follow up", each marked with who runs
+   it, whether it is reversible, and whether it needs an owner's decision.
 10. **Gaps:** missing telemetry and monitor improvements.
 11. **Method:** how the work was split and what you re-ran yourself. In a deep run,
     also the extra checks (dependency walk, disconfirmation probes, dose and

@@ -1,6 +1,6 @@
 ---
 name: k8s-triage
-description: Triage a failing, crash-looping, pending, slow, or unreachable Kubernetes workload read-only - events, logs, owner chain, and a likely cause - and, when the image has no shell or the cause is only visible from inside the pod, take a live look with a correctly profiled ephemeral debug container (kubectl debug), including datastores such as Redis/Valkey and RabbitMQ. Use whenever the user names a pod, deployment, statefulset, namespace, or service that is failing, restarting, OOMKilled, stuck Pending, ImagePullBackOff, CrashLoopBackOff, not ready, returning 5xx, or "why is X down in the cluster", says "triage", "debug this pod", "kubectl debug", "exec into" a distroless or shell-less container, or asks to check a queue, cache, or broker from inside the cluster - even if they do not say Kubernetes.
+description: Triage a failing, crash-looping, pending, slow, or unreachable Kubernetes workload read-only - events, logs, owner chain, and a likely cause - and, when the image has no shell or the cause is only visible from inside the pod, take a live look with a correctly profiled ephemeral debug container (kubectl debug), including datastores such as Redis/Valkey and RabbitMQ. Use whenever the user names a pod, deployment, statefulset, namespace, or service that is failing, restarting, OOMKilled, stuck Pending, ImagePullBackOff, CrashLoopBackOff, not ready, returning 5xx, or "why is X down in the cluster", says "triage", "debug this pod", "kubectl debug", "exec into" a distroless or shell-less container, or asks to check a queue, cache, or broker from inside the cluster - even if they do not say Kubernetes. Prefer it when a specific cluster workload is named; an alert, a Datadog link, or a symptom with no named workload fits the telemetry investigation skill, and a declared incident, SEV, outage, or customer impact goes to the incident coordination skill, which calls this one.
 ---
 
 # Kubernetes triage
@@ -8,8 +8,9 @@ description: Triage a failing, crash-looping, pending, slow, or unreachable Kube
 Find what is wrong with one workload and say how to fix it, from the cluster's
 own evidence. Start read-only. Reach for a debug container only when the
 read-only evidence cannot answer the question, because a debug container changes
-the pod. The outcome is: what is broken, the evidence line that proves it, and the
-narrowest fix, or an honest "inconclusive" with the next check.
+the pod. The outcome is: what is broken, the evidence line that proves it, the
+narrowest fix, and a closing final root cause with its confidence, or an honest
+"inconclusive" with the next check.
 
 ## Variables this skill expects
 
@@ -21,6 +22,7 @@ literal path, cluster, namespace, or credential in this file.
 | `{{WORKDIR}}` | Working directory for all commands |
 | `{{OUTPUT_DIR}}` | This skill's own folder for HTML reports, passed to the report skill |
 | `{{REPORT_SKILL}}` | Skill that writes the HTML report document from the finished findings |
+| `{{MODEL}}` | Model running this skill, cited in the report footer |
 | `{{DEBUG_ALLOWED_CONTEXTS}}` | kubectl contexts where this skill may create debug containers without asking first |
 | `{{DEBUG_IMAGE}}` | Image for debug containers (needs `sh`, `nc`, `wget`, `nslookup`, `ps`) |
 | `{{DEBUG_SLEEP_SECONDS}}` | How long a debug container sleeps before it exits on its own |
@@ -34,9 +36,13 @@ literal path, cluster, namespace, or credential in this file.
 2. **Reads are free; debug is a write.** `get`, `describe`, `logs`, `top`, and
    `events` need no permission. `kubectl debug` adds an ephemeral container that
    cannot be removed until the pod is recreated, so on a context outside
-   `{{DEBUG_ALLOWED_CONTEXTS}}` ask first, naming the pod. Never use `delete`,
-   `apply`, `patch`, `scale`, `rollout restart`, `cordon`, or `drain` in this
-   skill; propose them as the fix and let the user run them.
+   `{{DEBUG_ALLOWED_CONTEXTS}}` ask first, naming the pod. When the caller (an
+   incident coordinator or another skill) says to ask first, ask before every
+   debug container, even on an allowed context. Apart from that debug container,
+   never run `apply`, `patch`, `edit`, `delete`, `scale`, `rollout restart`,
+   `rollout undo`, `cordon`, `drain`, or any other command that changes the
+   cluster, and never roll back a release, change a feature flag, or post to chat,
+   tickets, or a status page; propose them as the fix and let the user run them.
 3. **Fewest debug containers.** Each one is permanent clutter on the pod. Reuse one
    sleeping container for every check on that pod, name it `dbg-<purpose>`, and
    give it a sleep that ends on its own. A pod may already list ephemeral containers from earlier
@@ -53,6 +59,20 @@ literal path, cluster, namespace, or credential in this file.
    on it.
 7. **Say what you could not see.** A missing metric, a denied permission, or an
    unreadable log is a finding, not a gap to paper over.
+8. **No secrets or customer data.** Never copy a secret, token, credential,
+   connection string, or customer or personal data (emails, names, message bodies,
+   request payloads) into chat or the report: say what type it is and where it
+   lives, never the value. Quote a log line exactly only when it carries none of
+   these; otherwise quote its error class and message shape with each such value
+   replaced by `<redacted>`. The report outlives the triage and gets shared.
+9. **Every time is UTC and has a source; name the model that ran.** Read the clock
+   with `date -u` for any time you originate (the triage start), and take cluster
+   times from fields that carry absolute timestamps (`lastTimestamp` or
+   `eventTime`, `startedAt`, `finishedAt` in `-o json`), not relative ages such as
+   `5m`. Never write a time you guessed: an incident coordinator logs your times
+   as you give them. Before the first command, check which model you are actually
+   running on; if it is not `{{MODEL}}`, say so in the first line of your reply
+   and in the report footer.
 
 ## Steps
 
@@ -120,11 +140,24 @@ State the cause only as strongly as the evidence allows. If two causes fit, name
 both and the one check that separates them. Stop investigating once the cause is
 established; do not widen into unrelated findings.
 
+Then write the final root cause from the same evidence, so a reader (or an
+incident postmortem) gets the chain and not only the verdict: the trigger, the
+mechanism, and the recovery where the cluster evidence shows them, each with its
+UTC time; then the contributing factors (why it was worse or slower to notice),
+what is still open, and the confidence. Write "not established" for any link the
+evidence does not reach; never fill it with a plausible guess. When nothing is
+broken, say so in place of the chain. Confidence is **high** when the evidence
+shows the cause, its timing (cause before symptom), and the mechanism; **medium**
+when one of the three is not shown; **low** when the cause fits the evidence but
+nothing tested confirms it.
+
 ### 6. Write the report
 
 Every triage that read from the cluster ends with an HTML report saved to disk, so
 the finding outlives the conversation. Do this after the chat answer, without being
-asked, unless the user said they want only the answer.
+asked, unless the user said they want only the answer. When an incident
+coordinator or another skill ran this triage, always write the report: the caller
+logs its path, and a postmortem reads it.
 
 Use the skill `{{REPORT_SKILL}}` to write it: load it with the skill tool, or read
 its handler file if skill loading is unavailable. It owns the page, the title and
@@ -133,10 +166,11 @@ none of that is repeated here. Give it this brief:
 
 - **profile:** `triage`.
 - **output folder:** `{{OUTPUT_DIR}}`. This skill's reports go there and nowhere else.
-- **time and title facts:** the time the triage started in UTC, the namespace and
-  workload, and the symptom in a few words.
+- **time and title facts:** the time the triage started in UTC (read with `date -u`,
+  rule 9), the namespace and workload, and the symptom in a few words.
 - **producer facts:** this skill's name, the cluster context, how many commands you
-  ran, and the model that actually ran.
+  ran, and the model that actually ran (`{{MODEL}}`, or the real one if it
+  differs).
 - **findings:** the chat answer in full, the exact evidence line with the command
   that produced it, the checks that mattered, and every debug container you created.
   The page is the same findings in a better container, so add nothing the chat
@@ -184,16 +218,25 @@ meets, and the failures have specific causes. Work through these in order.
 ## Output
 
 Reply in chat in this shape. The report in step 6 carries the same findings in
-full; the chat answer stays short and ends with the path and open command the report
-skill gave back.
+full; the chat answer stays short, and its final root cause closes it, followed
+only by the path and open command the report skill gave back.
 
 ```
 Context: <kubectl context>   Target: <namespace/kind/name>
 
 What is broken: <one or two sentences>
-Evidence: <the exact event, log line, status field, or probe result, with its source command>
-Narrowest fix: <the smallest change that addresses it, and who runs it>
+Evidence: <the exact event, log line (redacted per rule 8), status field, or probe result, with its source command>
+Timeline (UTC): <restarts, events, and state changes with their cluster times, or "none recorded">
+Narrowest fix: <the smallest change that addresses it, who runs it (a role), and whether it is reversible: yes | no | partly>
 Not verified: <what you could not see, or the next check if inconclusive>
 Created: <debug containers added, with names, or "nothing; read-only">
+
+Final root cause:
+  Trigger: <what started it, with its UTC time, or "not established">
+  Mechanism: <how the trigger became the symptom, or "not established">
+  Recovery: <what ended it and when, "not recovered", or "not established">
+  Contributing factors: <why it was worse or slower to notice, or "none found">
+  Still open: <links the cluster evidence could not reach, or "none">
+  Confidence: <high | medium | low, and why>
 Report: <full path to the HTML report> (open with <open command>)
 ```

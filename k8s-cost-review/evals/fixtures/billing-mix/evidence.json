@@ -1,0 +1,14 @@
+{
+  "context": "sandbox-b",
+  "billing_classification": [
+    {"workload": "frontend", "model": "pod-based CPU and memory"},
+    {"workload": "inference", "model": "hardware-specific node-based"}
+  ],
+  "metrics": {"status": "stale_and_incomplete", "age_days": 19, "expected_days": 14, "coverage_percent": 62, "startup_oom_and_peak_headroom": "not supplied"},
+  "hardware": {"nodes": 2, "fixed_commitment_usd_per_month": "1200", "months_remaining": 7, "cancelable": false, "eligible_alternative_usage": false, "commitment_covers_hardware_nodes": true},
+  "management_fee_usd_per_month": "73",
+  "candidate_actions": [
+    {"id": "reduce-frontend-requests", "evidence_status": "not_ready", "reason": "metrics are stale and coverage is incomplete"},
+    {"id": "reduce-hardware-node-count", "evidence_status": "no_commitment_saving", "reason": "fixed commitment remains payable"}
+  ]
+}

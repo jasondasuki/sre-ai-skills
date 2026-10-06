@@ -1,0 +1,11 @@
+{
+  "context": "sandbox-a",
+  "historical_demand": {"status": "unavailable", "coverage": null, "reason": "metrics endpoint denied access"},
+  "pool": {"current_nodes": 4, "minimum_nodes": null, "autoscaler_bounds": "not supplied"},
+  "placement": {"candidate_nodes": 3, "verification": "not supplied", "failover_headroom": "unknown"},
+  "billing": {"basis": "marginal node-hour", "rate_usd_per_node_hour": "0.25", "hours_per_month": "730"},
+  "candidate_actions": [
+    {"id": "reduce-requests", "evidence_status": "not_ready", "reason": "no historical demand, startup, or OOM coverage"},
+    {"id": "remove-one-node", "evidence_status": "conditional", "reason": "pool minimum and placement/failover proof are missing"}
+  ]
+}

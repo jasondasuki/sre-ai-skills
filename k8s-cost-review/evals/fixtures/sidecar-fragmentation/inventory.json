@@ -1,0 +1,21 @@
+{
+  "context": "sandbox-a",
+  "version": "v1.35.2",
+  "nodes": [
+    {"metadata": {"name": "node-a"}, "status": {"allocatable": {"cpu": "4", "memory": "8Gi"}}},
+    {"metadata": {"name": "node-b"}, "status": {"allocatable": {"cpu": "4", "memory": "8Gi"}}},
+    {"metadata": {"name": "node-c"}, "status": {"allocatable": {"cpu": "4", "memory": "8Gi"}}},
+    {"metadata": {"name": "node-d"}, "status": {"allocatable": {"cpu": "4", "memory": "8Gi"}}}
+  ],
+  "pods": [
+    {"metadata": {"name": "api-0", "namespace": "payments"}, "spec": {"nodeName": "node-a", "containers": [{"name": "app", "resources": {"requests": {"cpu": "700m", "memory": "1Gi"}}}], "initContainers": [{"name": "log-agent", "restartPolicy": "Always", "resources": {"requests": {"cpu": "100m", "memory": "128Mi"}}}, {"name": "schema", "resources": {"requests": {"cpu": "1500m", "memory": "2Gi"}}}, {"name": "warm-cache", "resources": {"requests": {"cpu": "500m", "memory": "512Mi"}}}]}, "status": {"phase": "Running"}},
+    {"metadata": {"name": "api-1", "namespace": "payments"}, "spec": {"nodeName": "node-a", "containers": [{"name": "app", "resources": {"requests": {"cpu": "700m", "memory": "1Gi"}}}], "initContainers": [{"name": "log-agent", "restartPolicy": "Always", "resources": {"requests": {"cpu": "100m", "memory": "128Mi"}}}, {"name": "schema", "resources": {"requests": {"cpu": "1500m", "memory": "2Gi"}}}, {"name": "warm-cache", "resources": {"requests": {"cpu": "500m", "memory": "512Mi"}}}]}, "status": {"phase": "Running"}},
+    {"metadata": {"name": "api-2", "namespace": "payments"}, "spec": {"nodeName": "node-b", "containers": [{"name": "app", "resources": {"requests": {"cpu": "700m", "memory": "1Gi"}}}], "initContainers": [{"name": "log-agent", "restartPolicy": "Always", "resources": {"requests": {"cpu": "100m", "memory": "128Mi"}}}, {"name": "schema", "resources": {"requests": {"cpu": "1500m", "memory": "2Gi"}}}, {"name": "warm-cache", "resources": {"requests": {"cpu": "500m", "memory": "512Mi"}}}]}, "status": {"phase": "Running"}},
+    {"metadata": {"name": "api-3", "namespace": "payments"}, "spec": {"nodeName": "node-c", "containers": [{"name": "app", "resources": {"requests": {"cpu": "700m", "memory": "1Gi"}}}], "initContainers": [{"name": "log-agent", "restartPolicy": "Always", "resources": {"requests": {"cpu": "100m", "memory": "128Mi"}}}, {"name": "schema", "resources": {"requests": {"cpu": "1500m", "memory": "2Gi"}}}, {"name": "warm-cache", "resources": {"requests": {"cpu": "500m", "memory": "512Mi"}}}]}, "status": {"phase": "Running"}},
+    {"metadata": {"name": "batch-0", "namespace": "payments"}, "spec": {"nodeName": "node-d", "containers": [{"name": "worker", "resources": {"requests": {"cpu": "250m", "memory": "512Mi"}}}], "initContainers": [{"name": "prepare", "resources": {"requests": {"cpu": "1", "memory": "1Gi"}}}]}, "status": {"phase": "Running"}},
+    {"metadata": {"name": "agent-a", "namespace": "kube-system"}, "spec": {"nodeName": "node-a", "containers": [{"name": "agent", "resources": {"requests": {"cpu": "200m", "memory": "512Mi"}}}]}, "status": {"phase": "Running"}},
+    {"metadata": {"name": "agent-b", "namespace": "kube-system"}, "spec": {"nodeName": "node-b", "containers": [{"name": "agent", "resources": {"requests": {"cpu": "200m", "memory": "512Mi"}}}]}, "status": {"phase": "Running"}},
+    {"metadata": {"name": "agent-c", "namespace": "kube-system"}, "spec": {"nodeName": "node-c", "containers": [{"name": "agent", "resources": {"requests": {"cpu": "200m", "memory": "512Mi"}}}]}, "status": {"phase": "Running"}},
+    {"metadata": {"name": "agent-d", "namespace": "kube-system"}, "spec": {"nodeName": "node-d", "containers": [{"name": "agent", "resources": {"requests": {"cpu": "200m", "memory": "512Mi"}}}]}, "status": {"phase": "Running"}}
+  ]
+}

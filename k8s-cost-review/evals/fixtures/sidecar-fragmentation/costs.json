@@ -1,0 +1,21 @@
+{
+  "currency": "USD",
+  "basis": "marginal",
+  "period": "730-hour month",
+  "rate_source": "synthetic fixture rates",
+  "rate_date": "2026-10-01",
+  "scenarios": [
+    {
+      "id": "request-only",
+      "action_ids": ["reduce-requests"],
+      "baseline": [{"id": "node-pool", "kind": "hourly", "quantity": 4, "rate": "0.25", "hours": 730}],
+      "proposed": [{"id": "node-pool", "kind": "hourly", "quantity": 4, "rate": "0.25", "hours": 730}]
+    },
+    {
+      "id": "three-node-alternative",
+      "action_ids": ["remove-one-node"],
+      "baseline": [{"id": "node-pool", "kind": "hourly", "quantity": 4, "rate": "0.25", "hours": 730}],
+      "proposed": [{"id": "node-pool", "kind": "hourly", "quantity": 3, "rate": "0.25", "hours": 730}]
+    }
+  ]
+}

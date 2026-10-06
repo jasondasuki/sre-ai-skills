@@ -6,6 +6,9 @@ slug and UTC timestamp to avoid overwrites:
 - `k8s-cost-review-YYYY-MM-DD-<scope>.md`
 - `evidence.json`
 - Optional sanitized role-specific evidence files.
+- `inventory.json` when admitted Kubernetes-shaped input is available.
+- `calculation-input.json` and `calculations.json` for priced scenarios.
+- `report-facts.json`, `evidence-checks.json`, and `report-contract-checks.json`.
 
 Write the finished HTML under `{{HTML_OUTPUT_DIR}}` using `{{REPORT_SKILL}}` and
 its `cost-review` profile. Its title and filename rules govern the HTML name.
@@ -66,6 +69,9 @@ units, aggregations, limitations, and sanitized evidence artifact filenames.>
 <Review start and generation times in UTC, actual planner model, collector models
 and parallel/serial mode, Markdown/HTML/evidence filenames, HTML markup and
 visual check results or the specific unavailable check.>
+
+<!-- cost-review-facts -->
+<One JSON fenced block containing the exact generated report-facts.json.>
 ```
 
 ## HTML writer brief
@@ -84,6 +90,10 @@ After validating the Markdown and evidence, load `{{REPORT_SKILL}}` and provide:
 - **Findings:** validated summary, baseline, complete prioritized action details,
   combined scenarios, rejected hypotheses, evidence gaps, implementation order,
   and evidence index. Preserve stable IDs and all limitations.
+- **Canonical contract:** the generated `report-facts.json`; embed once in a
+  `script` with type `application/json` and ID `cost-review-facts`, escaping HTML
+  delimiters as JSON Unicode escapes. This data block supplements visible content.
+  Use the same facts for the visible finding readiness, amounts and scenario tables.
 - **Source files:** absolute Markdown and evidence paths. Add the returned HTML
   path as a runtime input only. Store filenames and check results in the saved
   outputs. Pass verified GitHub URLs for scoped source repositories, derived from
@@ -104,16 +114,22 @@ specific blocker rather than claiming all formats passed.
 
 Use JSON with these keys; add details as useful, keeping numbers typed and
 unknowns null rather than zero. Evidence and findings must cross-reference.
+The full v1 schema is `references/evidence.schema.json`. Execute the validator
+and calculator as described in `references/deterministic-tools.md`, first on
+evidence, then on evidence plus both reports. The example below shows the
+shape; replace enum examples with one actual value and required provenance.
 
 ```json
 {
-  "scope": {"contexts": [], "namespaces": [], "mode": "live-or-supplied"},
+  "schema_version": 1,
+  "scope": {"contexts": ["resolved-context"], "namespaces": [], "mode": "supplied"},
   "collected_at": "ISO-8601",
   "review_started_at": "ISO-8601 UTC",
   "outputs": {"markdown": null, "html": null, "evidence": null},
   "report_checks": {"markup": null, "visual": null, "limitations": []},
   "window": {"start": null, "end": null, "coverage_notes": []},
-  "sources": [{"name": "source", "status": "available-or-unavailable", "reason": null}],
+  "pricing": {"currency": null, "basis": null, "rate_source": null, "rate_date": null, "period": "monthly"},
+  "sources": [{"name": "source", "status": "available", "reason": null}],
   "observations": [{
     "id": "E1", "resource": "scoped-resource", "source": "source",
     "query_or_reference": "command/query or supplied file section",
@@ -121,13 +137,19 @@ unknowns null rather than zero. Evidence and findings must cross-reference.
     "limitations": []
   }],
   "findings": [{
-    "id": "F1", "readiness": "ready-or-conditional-or-measure-first-or-rejected",
+    "id": "F1", "readiness": "measure-first",
     "target": "resource", "action": "proposed change",
     "evidence_ids": ["E1"], "dependencies": [], "overlap_group": null,
     "saving": {"low": null, "high": null, "currency": null, "period": "monthly", "basis": "marginal", "formula": null, "assumptions": []},
-    "capacity_benefit": null, "confidence": "high-or-medium-or-low"
+    "capacity_benefit": null, "confidence": "low"
   }],
   "scenarios": [],
   "gaps": []
 }
 ```
+
+Priced scenarios contain `id`, `action_ids`, typed `baseline`, `proposed`, `saving`,
+`baseline_components`, `proposed_components`, and `assumptions`. Copy component
+inputs and outputs from the calculator, preserving their exact rates/units and
+fixed obligations. Unpriced scenarios retain null costs. Do not add alternative
+scenarios or count a request benefit separately from the node reduction it enables.

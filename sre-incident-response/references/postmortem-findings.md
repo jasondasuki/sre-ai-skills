@@ -24,7 +24,9 @@ name belong to the report skill's `postmortem` profile; this file is the content
 4. **Root cause.** The investigator's final root cause as written: trigger,
    mechanism, why it crossed the alert threshold, recovery, then ruled out, still
    open, contributing factors, and confidence. Cite the report it came from by
-   path. If none was established, say "Root cause not established".
+   path. When it came from a triage, keep the links the triage gave and mark each
+   missing one "not established". If none was established, say "Root cause not
+   established".
 5. **Detection.** How the incident was noticed (which monitor or who), and how long
    after impact started. When the answer is "a user reported it", say that
    plainly, because it is the most useful sentence in the document.
@@ -60,7 +62,7 @@ Derive items from the evidence, not from a generic checklist:
   gives a `mitigate` item.
 - Each contributing factor in the final root cause gives a `prevent` item or an
   explicit note on why none is proposed.
-- A "still open" link gives an investigation item.
+- A "still open" or "not established" link gives an investigation item.
 
 Do not propose more than about eight; rank them so the first three are the ones to
 do.

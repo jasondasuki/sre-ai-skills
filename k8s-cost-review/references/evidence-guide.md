@@ -7,6 +7,12 @@ discover them before use. Commands run from `{{WORKDIR}}`.
 
 ## Minimal common inventory
 
+Prefer the bundled collector described in `references/deterministic-tools.md`
+for the shared node/Pod baseline. Its live Go-template projection and offline
+allowlist omit sensitive fields before output. Use the commands below only for
+targeted additional evidence; retain source failures and accounting gaps. Do not
+replace projection failures with saved raw Pod specs.
+
 List context names with `kubectl config get-contexts -o name`; read the current
 name with `kubectl config current-context`. Neither changes the selected context.
 For a resolved context, obtain Kubernetes version, node pool/provider labels,

@@ -1,0 +1,35 @@
+{
+  "currency": "USD",
+  "basis": "marginal",
+  "period": "730-hour month",
+  "rate_source": "synthetic fixture rates",
+  "rate_date": "2026-10-01",
+  "scenarios": [
+    {
+      "id": "pod-rightsize",
+      "action_ids": ["reduce-frontend-requests"],
+      "baseline": [
+        {"id": "frontend-pod-compute", "kind": "hourly", "quantity": 12, "rate": "0.048", "hours": 730},
+        {"id": "hardware-commitment", "kind": "fixed", "amount": "1200"},
+        {"id": "management", "kind": "fixed", "amount": "73"}
+      ],
+      "proposed": [
+        {"id": "frontend-pod-compute", "kind": "hourly", "quantity": 12, "rate": "0.024", "hours": 730},
+        {"id": "hardware-commitment", "kind": "fixed", "amount": "1200"},
+        {"id": "management", "kind": "fixed", "amount": "73"}
+      ]
+    },
+    {
+      "id": "hardware-node-reduction",
+      "action_ids": ["reduce-hardware-node-count"],
+      "baseline": [
+        {"id": "hardware-commitment", "kind": "fixed", "amount": "1200"},
+        {"id": "management", "kind": "fixed", "amount": "73"}
+      ],
+      "proposed": [
+        {"id": "hardware-commitment", "kind": "fixed", "amount": "1200"},
+        {"id": "management", "kind": "fixed", "amount": "73"}
+      ]
+    }
+  ]
+}
