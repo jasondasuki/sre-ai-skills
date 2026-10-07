@@ -7,11 +7,10 @@ space, or when a call fails with an auth or permission error.
 
 | Situation | Server | Sign-in |
 |---|---|---|
-| Jira Cloud (`*.atlassian.net`), the usual case | Atlassian Rovo MCP Server, `https://mcp.atlassian.com/v2/mcp` | OAuth 2.1 in the browser, as the user |
+| Jira Cloud (`*.atlassian.net`) | Atlassian Rovo MCP Server, `https://mcp.atlassian.com/v2/mcp` | OAuth 2.1 in the browser, as the user |
 | Jira Cloud where the agent runs headless | Same server | API token, if the org admin allows token auth for MCP |
-| Jira Server or Data Center | Community `sooperset/mcp-atlassian` | Personal access token (Data Center) or email plus API token (Cloud) |
 
-Prefer the official server for Cloud. It acts as the signed-in person, so every
+Jira Cloud only. Prefer OAuth: the server acts as the signed-in person, so every
 issue shows who really filed it, and there is no long-lived token to store.
 
 ## Install and sign in
@@ -19,7 +18,7 @@ issue shows who really filed it, and there is no long-lived token to store.
 Tell the user to run these themselves. The sign-in has to happen in their own
 browser, and a token should never be pasted into the conversation.
 
-**Official server, Claude Code:**
+**Claude Code:**
 
 ```bash
 claude mcp add --transport http {{JIRA_MCP_SERVER}} https://mcp.atlassian.com/v2/mcp
@@ -30,12 +29,6 @@ approve access in the browser. New MCP servers usually appear only in a new
 session. For other agent runtimes, add the same URL as a remote HTTP MCP server
 in that runtime's MCP config and complete the OAuth prompt it shows.
 
-**Community server (Server or Data Center):** run it with `uvx mcp-atlassian`,
-setting `JIRA_URL` and either `JIRA_PERSONAL_TOKEN` (Server or Data Center) or
-`JIRA_USERNAME` with `JIRA_API_TOKEN` (Cloud). The token belongs in the user's
-keychain or secret manager and is passed to the server through its environment.
-It never goes in a repo, a prompt, or this skill's state files.
-
 **If the connection is refused outright:** an Atlassian org admin has to enable
 the Rovo MCP server in the organization's security settings first. That is the
 usual cause.
@@ -43,28 +36,27 @@ usual cause.
 ## Capability map
 
 Match on capability, not exact name. Tool names change between server versions,
-and the official v2 server exposes a few primary tools and lets the client
-discover the rest on demand. If a capability seems missing, use the server's
-tool discovery before concluding it is absent. The names below are what each
-server used as of late 2026.
+and the v2 server exposes a few primary tools and lets the client discover the
+rest on demand. If a capability seems missing, use the server's tool discovery
+before concluding it is absent. The names below are as of late 2026.
 
-| Capability | Official server | Community server |
-|---|---|---|
-| List reachable sites (gives the cloud ID) | `getAccessibleAtlassianResources` | not needed: one site per server config |
-| Who am I signed in as | `atlassianUserInfo` | user-profile tool |
-| List visible spaces | `getVisibleJiraProjects` | list-projects tool |
-| Issue types and create fields | `getJiraProjectIssueTypesMetadata`, `getJiraIssueTypeMetaWithFields` | field and create-meta tools |
-| Search with JQL | `searchJiraIssuesUsingJql` | `jira_search` |
-| Read one issue | `getJiraIssue` | `jira_get_issue` |
-| Create an issue | `createJiraIssue` | `jira_create_issue` |
-| Edit fields | `editJiraIssue` | `jira_update_issue` |
-| Comment | `addCommentToJiraIssue` | add-comment tool |
-| Transitions | `getTransitionsForJiraIssue`, `transitionJiraIssue` | `jira_transition_issue` |
-| Find a person's account | `lookupJiraAccountId` | user-search tool |
-| Link issues | `getIssueLinkTypes`, `createIssueLink` | link tools |
-| Boards and sprints | `listJiraBoards`, `listJiraBoardSprints`, `manageJiraSprint` | agile tools |
+| Capability | Tool |
+|---|---|
+| List reachable sites (gives the cloud ID) | `getAccessibleAtlassianResources` |
+| Who am I signed in as | `atlassianUserInfo` |
+| List visible spaces | `getVisibleJiraProjects` |
+| Issue types and create fields | `getJiraProjectIssueTypesMetadata`, `getJiraIssueTypeMetaWithFields` |
+| Search with JQL | `searchJiraIssuesUsingJql` |
+| Read one issue | `getJiraIssue` |
+| Create an issue | `createJiraIssue` |
+| Edit fields | `editJiraIssue` |
+| Comment | `addCommentToJiraIssue` |
+| Transitions | `getTransitionsForJiraIssue`, `transitionJiraIssue` |
+| Find a person's account | `lookupJiraAccountId` |
+| Link issues | `getIssueLinkTypes`, `createIssueLink` |
+| Boards and sprints | `listJiraBoards`, `listJiraBoardSprints`, `manageJiraSprint` |
 
-When the official server asks for a `cloudId`, get it once from the site list
+When the server asks for a `cloudId`, get it once from the site list
 and pass it explicitly on every later call. A bare site URL is not enough when
 the login can reach several sites.
 
@@ -110,3 +102,6 @@ stays the source of truth.
 
 Drop an entry when the user asks to, or when a check against that space fails
 with an auth or permission error. The next run then repeats first contact.
+
+If every run repeats first contact, the entry was never saved because the
+account and site were not confirmed. Ask the user to confirm them.

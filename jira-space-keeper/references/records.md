@@ -19,22 +19,21 @@ records:
     stable_id: INV-2026-10-06-03   # optional: the caller's own ID for this exact finding
     resource: checkout-api     # optional: the affected service, host, queue, account...
     severity: high             # optional: a value from the profile's severity scale
-    what: >-                   # what was observed, 1-3 sentences, facts only
-      ...
+    what:                      # facts only, one per item
+      - "..."
     evidence:                  # links and short facts, each one checkable
       - "<dashboard or query link>"
       - "error rate 0.4% -> 6.1% between 14:02 and 14:20 UTC"
-    impact: >-                 # who or what is affected, how much, and how sure we are
-      ...
-    next_step: >-              # suggested next action; the triager decides
-      ...
-    confidence: medium         # optional: high | medium | low
-    labels: [checkout]         # optional extras; must pass the profile's allow-list
+    impact: "..."              # who or what is affected, and how much
+    confidence: medium         # optional: high | medium | low, as the source stated it
+    next_step: "..."           # one suggested action; the triager decides
+    still_open: []             # optional: what the source could not verify
+    labels: [alert-checkout-api]   # optional hints; mapped to the profile's known labels
     links: []                  # optional related issue keys or URLs
   - kind: task
     title: "Add a burn-rate alert for checkout-api availability SLO"
-    why: "..."                 # task template field: why this work matters
-    done_when: "..."           # task template field: acceptance in one line
+    why: "..."                 # why this work matters
+    done_when: "..."           # one checkable condition: "alert on X above Y exists", not "improve monitoring"
 ```
 
 Rules for callers:
@@ -47,71 +46,78 @@ Rules for callers:
   source instead.
 - Give a `stable_id` whenever you have one. It makes dedupe exact across reruns
   of the same investigation.
-- Keep `confidence` honest: a `low` finding is still worth recording, as long as
-  it is labelled that way.
+- Pass a cause and `confidence` exactly as your analysis stated them. The skill
+  never strengthens them.
+- `labels` are hints. The space's board profile decides the final labels: a
+  hint is mapped to the known label it means, or proposed as a new one in the
+  preview.
 
 ## Description templates
 
-Use the template the kind's profile entry names. Leave out an empty section
-rather than writing "N/A". Jira renders the Markdown when the MCP converts it;
-read one created issue back to confirm it rendered.
+- Use the template the kind's profile entry names.
+- Bullets only, no prose paragraphs.
+- Drop an optional bullet that has nothing in it. A required one (finding: What,
+  Impact; task: Why, Done when) the source did not establish reads
+  `not established`.
+- Write every time in UTC and say so (`14:02 UTC`).
+- `Possible regression of` appears only when dedupe found a done issue with the
+  same fingerprint.
 
 **finding**
 
 ```markdown
-**What we saw**
-<what>
-
-**Evidence**
-- <evidence item>
-
-**Impact**
-<impact>  (confidence: <confidence>)
-
-**Suggested next step**
-<next_step>
+- **Possible regression of:** <KEY>
+- **What:**
+  - <fact>
+- **Evidence:**
+  - <link or fact>
+- **Impact:** <impact> (confidence: <confidence>)
+- **Next step:** <next_step>
+- **Still open:**
+  - <what is not verified>
 
 ----
-Recorded via jira-space-keeper by <caller or "a person"> on <YYYY-MM-DD>.
-Source: <source> <source_ref>
+Recorded on <YYYY-MM-DD>.
 Fingerprint: <rec-label>
-Stable ID: <stable_id>
 ```
 
 **task**
 
 ```markdown
-**Why**
-<why>
-
-**Done when**
-<done_when>
-
-**Context**
-- <evidence or links>
+- **Why:** <why>
+- **Done when:** <done_when>
+- **Context:**
+  - <link or fact>
 
 ----
-Recorded via jira-space-keeper by <caller or "a person"> on <YYYY-MM-DD>.
-Source: <source> <source_ref>
+Recorded on <YYYY-MM-DD>.
 Fingerprint: <rec-label>
 ```
 
-The footer is what lets a person, or a later run, trace an issue back to where
-it came from. Never remove it when editing an issue this skill created.
+**comment** (new evidence on an existing issue)
+
+```markdown
+- **New:**
+  - <evidence, or a new time window>
+- **Impact change:** <only if it changed>
+
+----
+Recorded on <YYYY-MM-DD>.
+Fingerprint: <rec-label>
+```
+
+Footer:
+
+- Only these two lines. The date comes from `date -u`.
+- No source, caller, or stable ID: the source is already in the `src-` label,
+  and the fingerprint is how a later run finds the issue.
+- Never remove it when editing an issue this skill created.
 
 ## Fingerprint
 
-`scripts/space_keeper.py fingerprint` computes it, so every person and every
-machine gets the same label for the same record:
-
-- With a `stable_id`: `sha256("v1|" + source + "|id:" + stable_id)`.
-- Without one: `sha256("v1|" + source + "|t:" + title + "|r:" + resource)`.
-- Before hashing, `source`, `stable_id`, `title`, and `resource` are lowercased,
-  Unicode-normalized, stripped of punctuation, and whitespace-collapsed.
-- The label is the profile's `fingerprint_prefix` plus the first 12 hex digits.
-
-A reworded title changes the fingerprint. That is why the similar-issue search
-below always runs too.
+`scripts/space_keeper.py fingerprint` computes it, so every person and machine
+gets the same label for the same record. A reworded title changes it, which is
+why the similar-issue search below always runs too.
 
 ## Dedupe searches
 
@@ -128,6 +134,5 @@ Judge the similar matches yourself. Two issues are duplicates only when fixing
 one would close the other. Same resource with a different symptom is not a
 duplicate; mention it as related in the preview.
 
-When the default action is a comment on an existing issue, the comment holds
-only what is new: new evidence, a new time window, changed impact, and the same
-footer. Never restate the whole finding.
+A comment on an existing issue uses the comment template: only what is new.
+Never restate the whole finding.

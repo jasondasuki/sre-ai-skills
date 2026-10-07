@@ -16,7 +16,13 @@
     {
       "id": 3,
       "prompt": "Another agent handed me this batch to file. It's my first time using the SANDBOX2 space, dry run please.\n\n{\"space\": \"SANDBOX2\", \"source\": \"k8s-cost-review\", \"source_ref\": \"reports/2026-10-06-cost-review.html\", \"caller\": \"k8s-cost-review\", \"dry_run\": true, \"records\": [{\"kind\": \"finding\", \"title\": \"Node pool batch-pool idle 70% of the week\", \"resource\": \"batch-pool\", \"severity\": \"medium\", \"what\": \"Average CPU requests on batch-pool are 18% of allocatable outside the nightly window.\"}, {\"kind\": \"task\", \"title\": \"Enable cluster autoscaler scale-down on batch-pool\", \"why\": \"Cuts idle node cost\", \"done_when\": \"batch-pool scales to 1 node outside 01:00-04:00 UTC\"}]}",
-      "expected_output": "Runs the full first-contact checklist for SANDBOX2 (account, site, space visibility, create permission, profile) and asks the user to confirm account and site before any write. If no profile exists, drafts one from the space's real issue types, asks whether the user owns or coordinates the space, and does not create the profile because this is a dry run. Uses the caller's records as given, adds the agent-recorded label, and shows a preview marked DRY RUN (and PROVISIONAL PROFILE if no profile exists), with no write calls.",
+      "expected_output": "Runs the full first-contact checklist for SANDBOX2 (account, site, space visibility, create permission, profile) and asks the user to confirm account and site before any write. If no profile exists, drafts one from the space's real issue types, shows it as row 0 \"create profile\" without asking who owns the space, and does not create the profile because this is a dry run. Uses the caller's records as given, adds the agent-recorded label, and shows a preview marked DRY RUN, with no write calls.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "dry run: log a finding on the SANDBOX board. The MongoDB replication lag alert fired on rs-orders at 09:12 UTC, secondary lag peaked at 45s. Label it mongodb-alert.",
+      "expected_output": "Reads the SANDBOX board profile and takes labels only from its labels section. Does not apply mongodb-alert: uses alert-mongodb if the profile knows it, otherwise proposes alert-mongodb with a one-line meaning in a row 0 \"update profile\" (with its YAML diff) and does not ask who owns the space. Lists labels picked by meaning under Inferred, shows a preview marked DRY RUN, and makes no write calls, including no profile update.",
       "files": []
     }
   ]
