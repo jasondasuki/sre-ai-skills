@@ -249,13 +249,30 @@ Uncommitted changes and unpushed commits are reported as notes, not as pauses.
 
 A single request can run several handlers (one skill chaining to another, or
 parallel subagents), and each runs the script, so a passing result is remembered
-per repo, branch, and remote for `PREFLIGHT_TTL` seconds (default 600; `0` turns
-it off). Only the first run fetches; later runs print `PREFLIGHT: ok` with a
-"fetch skipped" note, and parallel runs wait for the first instead of all
-fetching. The memory lives in a `skill-preflight` folder under the user cache directory, is dropped when the
-repo's `HEAD` moves, and is never written for a pause. The branch, behind, and
-uncommitted checks still run on every call. The script cannot see where a
-request starts, so a new request inside the window also reuses the result.
+per repo, branch, and remote for `PREFLIGHT_TTL` seconds (default 1800; `0` turns
+it off). Only the first run checks the network; later runs print a one-line
+`PREFLIGHT: ok (cached, ...)`, and parallel runs wait for the first instead of all
+fetching. The network check is a single `git ls-remote`; a fetch happens only when
+the remote branch moved. The memory lives in a `skill-preflight` folder under the
+user cache directory, is dropped when the repo's `HEAD` moves, and is never written
+for a pause. The branch and behind checks run on every call, and uncommitted
+changes are always noted (a count on a fresh run, a yes/no on a cached one). The
+script cannot see where a request starts, so a new request inside the window also
+reuses the result.
+
+Optional, all off by default, set in the environment:
+
+- `scripts/preflight-warm.sh` fills the memory in the background at session start
+  (a `SessionStart` hook), so handlers find a fresh result and never wait on the
+  network. It warms every sibling `*-ai-skills` repo on `main` of `origin`.
+- `PREFLIGHT_LAZY=1` accepts a result older than the TTL (up to `PREFLIGHT_STALE`,
+  default 21600 seconds) and re-verifies in a detached background run. The
+  trade-off: a core that fell behind in that window is caught on the next run, not
+  this one.
+- `PREFLIGHT_FF=1` fast-forwards (`merge --ff-only`) when the checkout is only
+  behind: on the expected branch, no local commits, no changes to tracked files.
+  Anything else still pauses. It is the user's choice to set it, since it changes
+  the checkout the handler text says not to touch.
 
 Never edit this step out of a handler to make a skill run; change the variables
 or fix the repo instead.
@@ -388,3 +405,4 @@ recognise) as "not in this layout", and do not modify them.
 - `{{REPO_DIR}}/ONBOARDING.md`: the guide for setting up the skill repos on a computer.
 - `scripts/check-skill.sh`: the consistency and leak checker.
 - `scripts/preflight.sh`: the branch-and-freshness gate every handler runs first.
+- `scripts/preflight-warm.sh`: fills the preflight memory ahead of time (session-start hook).
