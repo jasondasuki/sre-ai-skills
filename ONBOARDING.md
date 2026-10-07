@@ -74,6 +74,10 @@ bash <sre-ai-skills>/personal-skill-generator/scripts/preflight.sh <repo>/<core>
 `PREFLIGHT: ok` means continue. `PREFLIGHT: pause` means stop and report what it
 found and the fix commands it printed.
 
+Optional speed-ups (see the generator's "Preflight" section): a `SessionStart` hook that
+runs `scripts/preflight-warm.sh`, and the `PREFLIGHT_LAZY=1` / `PREFLIGHT_FF=1` environment
+variables.
+
 ## Step 3 - bootstrap the generator's handler
 
 The generator makes every other handler, so it must exist first, and it has to be
