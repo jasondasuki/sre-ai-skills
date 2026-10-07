@@ -99,7 +99,10 @@ JS is fine (for example expand/collapse). The file is a local document and no
 publisher wraps it, so write a complete one (doctype, charset, viewport meta) and
 follow the design skill's theming and layout rules, not its advice to omit the
 document skeleton. Convey every status through an icon and
-a text label as well as colour, so the page reads without colour vision.
+a text label as well as colour, so the page reads without colour vision. A profile
+may set its own visual language (the `postmortem` profile does, with a layout
+example); where it does, the profile's palette and layout replace the warm style
+above, and every rule in this file still applies.
 
 ## Hard rules
 
@@ -143,3 +146,5 @@ Each rule has a reason; the reason is what lets you apply it to a case not liste
 - `references/profile-triage.md`: the workload triage report format.
 - `references/profile-cost-review.md`: the Kubernetes cost-review report format.
 - `references/profile-postmortem.md`: the incident postmortem report format.
+- `references/postmortem-layout-example.html`: the postmortem page's layout
+  reference, with synthetic content. Copy the structure and CSS, never the values.
