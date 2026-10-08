@@ -1,8 +1,7 @@
 # Final root cause
 
 Read this when you write the report (Step 6). It holds the closing root cause, the
-part of the report that needs the most care. The diagram and the page layout are
-owned by the report skill's `hypothesis-investigation` profile.
+part of the report that needs the most care.
 
 ## Contents
 
@@ -11,10 +10,9 @@ owned by the report skill's `hypothesis-investigation` profile.
 
 ## Final root cause: the closing chain
 
-The last content section of the report, and, in short form, the close of the chat
-reply, where only the report path follows it (Step 7 of the core sets the order).
-The opening "Root cause" is the quick answer; this is the argument that earns it,
-and the two must agree.
+The last section of the report and the last thing in the reply: nothing follows
+it. The opening "Root cause" is the quick answer; this is the argument that earns
+it, and the two must agree.
 
 Write it after all the evidence is in, in this shape:
 
@@ -42,6 +40,5 @@ plausible guess.
   span, log, or metric shows it.
 - Check dose and response: say when a smaller occurrence of the cause did not move
   the symptom, and when the timing of the two series differs by bucketing.
-- A diagram is the same findings in a better container. Nothing appears in it
-  that is not in the Evidence section; the report skill's profile holds the
-  diagram's own spec.
+- The chain and the hypothesis tree are the same findings at two levels. Nothing
+  appears in the chain that is not backed by the Evidence section.

@@ -285,7 +285,8 @@ footer.foot { color: var(--muted); font-size: .8rem; display: flex; flex-wrap: w
     <section id="impact" aria-labelledby="h-impact">
       <h2 id="h-impact" style="margin-bottom:10px"><svg class="i"><use href="#i-clock"/></svg>Impact at a glance</h2>
       <div class="tiles">
-        <div class="tile"><div class="k"><svg class="i"><use href="#i-alert"/></svg>Time to detect</div><div class="v">7 min</div><div class="s">impact-start to detected</div></div>
+        <div class="tile"><div class="k"><svg class="i"><use href="#i-alert"/></svg>Time to detect</div><div class="v">7 min</div><div class="s">impact-start to alerted</div></div>
+        <div class="tile"><div class="k"><svg class="i"><use href="#i-clock"/></svg>Time to engage</div><div class="v nr">not recorded</div><div class="s">alerted to engaged; no engaged entry logged</div></div>
         <div class="tile"><div class="k"><svg class="i"><use href="#i-shield"/></svg>Time to mitigate</div><div class="v">39 min</div><div class="s">impact-start to mitigated</div></div>
         <div class="tile"><div class="k"><svg class="i"><use href="#i-check"/></svg>Time to resolve</div><div class="v">63 min</div><div class="s">impact-start to resolved</div></div>
         <div class="tile"><div class="k"><svg class="i"><use href="#i-layers"/></svg>Error rate</div><div class="v nr">not recorded</div><div class="s">no logged source</div></div>
@@ -375,7 +376,7 @@ footer.foot { color: var(--muted); font-size: .8rem; display: flex; flex-wrap: w
       </div>
       <ol class="stream">
         <li><span class="n">1</span><time datetime="2026-01-15T14:02Z">14:02</time><div class="what"><span>Sample: first errors reported by the checkout service.</span><span class="tags"><span class="chip bad">impact-start</span><span class="chip plain">source: reported</span></span></div></li>
-        <li><span class="n">2</span><time datetime="2026-01-15T14:09Z">14:09</time><div class="what"><span>Sample: error-rate monitor alerted.</span><span class="tags"><span class="chip warn">detected</span><span class="chip plain">source: observed</span></span></div></li>
+        <li><span class="n">2</span><time datetime="2026-01-15T14:09Z">14:09</time><div class="what"><span>Sample: error-rate monitor alerted.</span><span class="tags"><span class="chip warn">alerted</span><span class="chip plain">source: observed</span></span></div></li>
         <li><span class="n">3</span><time datetime="2026-01-15T14:21Z">14:21</time><div class="what"><span>Sample: investigator's leading hypothesis, medium confidence.</span><span class="tags"><span class="chip brand">hypothesis</span><span class="chip plain">source: investigation skill</span></span></div></li>
         <li><span class="n">4</span><time datetime="2026-01-15T14:26Z">14:26</time><div class="what"><span>Sample: pool-wait time rose at the release time.</span><span class="tags"><span class="chip brand">evidence</span><span class="chip plain">source: investigation skill</span></span></div></li>
         <li><span class="n">5</span><time datetime="2026-01-15T14:31Z">14:31</time><div class="what"><span>Sample: commander chose rollback.</span><span class="tags"><span class="chip info">decision</span><span class="chip plain">source: reported</span></span></div></li>

@@ -92,7 +92,20 @@ PROBE <id>
 - data quality: <gaps, missing data, errors, truncation, or "clean">
 - references: <monitor, trace, event, or incident IDs and URLs>
 
-Keep the whole report under about 400 words. No preamble, no summary, no advice.
+For probes returning metric points, comparison totals, trace timings, or entity
+relationships, also return compact visual-evidence records: exact values and
+units, UTC timestamps/windows, scope/dimensions, baseline labels, aggregation and
+bucket size, timestamp semantics/known delay, and query/probe IDs. Preserve nulls,
+missing series, and truncation separately from zero. Distinguish verified entity
+relationships from merely configured candidate paths; do not infer the route
+taken by a failing request. This lets the planner draw the retrieved evidence
+without inventing points from a prose summary.
+
+Keep prose under about 400 words. Visual-evidence records may be an attached
+compact table/JSON or a reference to a runtime-managed result retaining the
+returned data; do not truncate them to satisfy the prose limit. Stay within
+the query limits and do not fetch extra data just to fill a chart.
+No preamble, no summary, no advice.
 END BRIEF
 ```
 

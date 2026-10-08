@@ -1,7 +1,8 @@
 # Status update drafts
 
 Read this when a status update is due. These are drafts for the human to review and
-send; this skill never posts them. Write for a reader who is not an engineer and
+send; this skill never posts them (the one message it posts is the incident
+summary in `slack-post.md`, which is not a status update). Write for a reader who is not an engineer and
 has not been following: plain words, what users see, what is being done, when the
 next update comes.
 
@@ -17,7 +18,7 @@ next update comes.
 ## Rules for every draft
 
 - **State only what is established.** Do not name a cause until an investigator
-  (the telemetry investigation or the cluster triage) has reported one with medium
+  (any skill on the roster) has reported one with medium
   or high confidence, and then say "we believe" unless it is high.
 - **Describe user impact, not internals.** No hostnames, cluster names, ticket
   numbers, secrets, or customer data.

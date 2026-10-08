@@ -32,6 +32,11 @@ users are affected, because it cannot be undone.
 3. Say it in one line: `SEV2 (proposed): checkout errors at roughly 30% for all
    users; would drop to SEV3 if the retry path is confirmed healthy.`
 
+An alert with nothing showing that users are affected is SEV4. Its status is still
+`open`: it is a watch, not worked as a full incident, until user impact is reported
+or seen, a critical threshold is crossed, or the alert does not clear. When that
+happens, re-propose the level.
+
 ## Re-proposing
 
 Re-propose whenever the impact grows, shrinks, or a new fact changes the reading
