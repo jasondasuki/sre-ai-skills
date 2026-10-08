@@ -46,6 +46,25 @@ name belong to the report skill's `postmortem` profile; this file is the content
 10. **Linked reports.** The file names of the saved investigator answers (one
     per investigator that ran) and of the incident log.
 
+## When it ended without a resolution
+
+A log that ends in `closed` and not `resolved` (no user impact, an alert that did not
+clear, a cause never established) gets the same document, with these differences. Say
+in the summary's first sentence how it ended, in plain words.
+
+- **Impact:** write what the log shows, including "no user impact seen" when that is
+  the finding, and say what was not checked.
+- **Root cause:** the investigators' final root causes as written, at their stated
+  confidence. If none reached medium or high, write "Root cause not established" and
+  give the leading hypothesis labelled as such; never strengthen it.
+- **Duration figures:** `durations` prints `not recorded` for a missing endpoint; use
+  that, not an estimate. Do not invent a resolution time from the close.
+- **Response:** include the options that were proposed and not taken, and why the
+  commander closed (the `closed` entry's reason).
+- **Action items:** each "not established" or "still open" link gives an investigation
+  item, and a threshold or monitor that kept firing without user impact gives a
+  `detect` item to retune or replace it.
+
 ## Action items
 
 Every item has these fields:

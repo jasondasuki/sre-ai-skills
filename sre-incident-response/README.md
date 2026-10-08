@@ -16,9 +16,11 @@ This file is the guide for people. The instructions the agent follows are in
 | **Continue** | An incident that already has a log, in a new session or after a break. Also: the link to a thread that another agent opened in the channel | An updated analysis, and one reply in the thread with the new Markdown file attached |
 | **Postmortem (closed)** | An incident that is over | A postmortem report as a dark HTML page, posted in the thread when the incident has one |
 
-A closed incident always gets the HTML report. The one exception is a SEV4 watch
-that ended with no user impact. It is logged as closed with the reason and gets no
-report unless the commander asks.
+A closed incident always gets the HTML report, with no exception: not for a SEV4
+watch, not when there was no user impact, not when the alert never cleared, and not
+when the cause was never established. Such a close is logged as `closed` with the
+reason (a recovery is logged as `resolved`), and the report shows what is unknown as
+unknown.
 
 ## Rules that never bend
 

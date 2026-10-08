@@ -27,9 +27,10 @@ Next update due: <UTC time>
 
 Statuses are only two. `open`: the incident is being worked or watched, at any
 severity (a SEV4 watch is open). `closed`: it is over. How it ended is in the
-timeline, not the status: a `resolved` entry means it was an incident (the
-postmortem is due), a `closed` entry alone means it was stood down with no
-incident. `mitigated` is a timeline entry too, not a status. Old logs may carry
+timeline, not the status: a `resolved` entry means it ended on evidence of recovery,
+a `closed` entry alone means the commander closed it without a recorded recovery or a
+confirmed cause. Either way the postmortem is due. `mitigated` is a timeline entry
+too, not a status. Old logs may carry
 `monitoring`, `mitigated` (read as open) or `resolved` (read as closed).
 
 Tags:
@@ -42,7 +43,7 @@ Tags:
 | `hypothesis`, `evidence` | An investigator's stated cause, and the line it names as proof |
 | `decision`, `action` | What the commander chose, and what was then done |
 | `mitigated`, `resolved` | Recovery on evidence, and the human's close |
-| `closed` | Stood down with no incident, with the reason |
+| `closed` | Closed without a recorded recovery or a confirmed cause, with the reason; the postmortem is still written |
 | `comms` | A status update draft was prepared |
 | `note` | Severity changes and anything else that bears on the story |
 
