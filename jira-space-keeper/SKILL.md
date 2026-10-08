@@ -50,8 +50,9 @@ Spawns no subagents: duplicate and safety calls need the whole batch in one cont
    or a structured caller sets `dry_run: true`, do every read and check, show the
    preview, save it, and stop. Profile rows are also skipped.
 3. **The profile is the authority.** Use its issue types, summary formats,
-   labels, and field mappings. Never invent a field, custom-field value, priority,
-   component, status, or transition. Read the space's real metadata instead.
+   labels, Epic mapping, and field mappings. Never invent a field, custom-field
+   value, priority, component, status, or transition. Read the space's real
+   metadata instead.
    Take labels only from the profile; a new label goes in through a profile row.
    If the profile and the space disagree (a renamed issue type, a field that is
    now required), stop and say what differs. A guess breaks the consistency the
@@ -142,6 +143,13 @@ mark the preview `PROVISIONAL PROFILE`.
    ("improve monitoring") and suggest a checkable one.
 2. Build each issue from the profile: issue type, summary format, labels,
    description template, and severity mapping for the record's kind.
+   Before resolving any `create` row, list all open Epics in the space through
+   the Jira MCP, paging until complete, using the profile's `epics.issue_type`.
+   The board profile is not an Epic inventory. Match the record to a listed Epic
+   when its work clearly belongs there; otherwise assign the profile's inbox
+   Epic, `Pending - Missing Epic`. If the inbox Epic is absent from the live
+   listing, add its creation as a prerequisite row ahead of the card. Never
+   preview or create an Epic-less card.
 3. Pick labels by the meanings in the profile's `labels.known`, following
    "Labels" in `references/board-profile.md`. Map labels the caller sent to the
    known ones they mean. A label the profile lacks is named prefix first
@@ -249,18 +257,18 @@ Preview, one table per space:
 ### Preview: <SITE> / <SPACE KEY> (<space name>), profile v<N> <PROVISIONAL PROFILE if so> <DRY RUN if so>
 Source: <source> (<source_ref>)    Caller: <agent or skill name, or "user">
 
-| # | Action | Kind | Type | Summary | Severity -> field | Labels | Match |
-|---|---|---|---|---|---|---|---|
-| 0 | update profile | - | - | Board profile v3 -> v4: add label alert-checkout-api | - | - | - |
-| 1 | create | finding | Bug | [sre-investigation] p99 latency doubled on checkout-api after 14:02 UTC | high -> Priority: High | finding, alert-checkout-api, src-sre-investigation, rec-1a2b3c4d5e6f | - |
-| 2 | comment | finding | - | on OPS-412: new evidence for cache eviction storm | - | - | OPS-412 (same fingerprint, open) |
-| 3 | create | task | Task | Rotate staging TLS certificates | - | task, src-sre-investigation, rec-0f9e8d7c6b5a | possible duplicate: OPS-388 (similar title, open) |
-| 4 | skip | finding | - | Redis memory at 92% | - | - | OPS-401 (same fingerprint, open, nothing new) |
+| # | Action | Kind | Type | Summary | Epic | Severity -> field | Labels | Match |
+|---|---|---|---|---|---|---|---|---|
+| 0 | update profile | - | - | Board profile v3 -> v4: add label alert-checkout-api | - | - | - | - |
+| 1 | create | finding | Bug | [sre-investigation] p99 latency doubled on checkout-api after 14:02 UTC | Pending - Missing Epic (OPS-400) | high -> Priority: High | finding, alert-checkout-api, src-sre-investigation, rec-1a2b3c4d5e6f | - |
+| 2 | comment | finding | - | on OPS-412: new evidence for cache eviction storm | - | - | - | OPS-412 (same fingerprint, open) |
+| 3 | create | task | Task | Rotate staging TLS certificates | Stability - Checkout observability and hardening (OPS-399) | - | task, src-sre-investigation, rec-0f9e8d7c6b5a | possible duplicate: OPS-388 (similar title, open) |
+| 4 | skip | finding | - | Redis memory at 92% | - | - | - | OPS-401 (same fingerprint, open, nothing new) |
 
 Profile change (row 0):
   + alert-checkout-api: "An alert on checkout-api fired, or the record is about one"
 Redacted before posting: row 1 evidence, 1 connection string with a password.
-Inferred: row 1 label alert-checkout-api (from the alert in its evidence); row 3 kind (from "remind us to").
+Inferred: row 1 label alert-checkout-api (from the alert in its evidence); row 1 Epic Pending - Missing Epic (no clear matching Epic); row 3 kind (from "remind us to").
 Problems: <what differs between the profile and the space>.
 
 Reply `approve`, `approve except <#>`, `<#>: comment on <KEY>`, `<#>: severity <level>`, or `drop <#>`.

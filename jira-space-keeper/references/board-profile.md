@@ -42,7 +42,8 @@ every issue that has no labels at all.
 ## Schema
 
 Keys are snake_case. Anything not listed is ignored. A missing optional key takes
-the default shown.
+the default shown. The `epics` section is required for profiles that create
+cards; a legacy profile without it must be upgraded before a card is created.
 
 ```yaml
 schema: 2                      # profile format version; this file describes 2
@@ -76,6 +77,13 @@ severity:
 fields:                        # static values set on every created issue
   components: []               # names that exist in the space
   # customfield_10042: "Platform"   # only fields the create screen accepts
+
+epics:                         # every created card must have one
+  issue_type: Epic             # the space's Epic type
+  field: parent                # create field that assigns a card to its Epic
+  inbox:
+    key: OPS-400               # existing Epic; use when no named Epic clearly fits
+    summary: "Pending - Missing Epic"
 
 labels:                        # this space's label convention; anyone may add to it
   prefixes:                    # label families, named <prefix>-<subject>
@@ -112,6 +120,14 @@ Validation, each run:
 - Every field the create screen marks required for each kind's type is supplied
   by `fields`, by the severity mapping, or by the record itself. A newly required
   field shows up here first.
+- `epics.issue_type` exists, `epics.field` is accepted on every created kind's
+  create screen, and its value selects an Epic rather than a non-Epic parent.
+  The inbox resolves to an open Epic with the stated summary. Before selecting
+  an Epic for a card, list all open Epics through the Jira MCP with
+  `project = <KEY> AND issuetype = "<epics.issue_type>" AND statusCategory != Done`
+  and page until the result is complete; do not treat the profile as an Epic
+  inventory. The profile stores the actual create-field name: use `parent` only
+  when the space accepts it; otherwise use its verified Epic-link field.
 - Every `severity.map` value is valid for its target, and every component exists.
 - Every label in a kind's `labels`, and every severity label when `target` is
   `label`, is in `labels.known`.
@@ -153,6 +169,34 @@ its own set, so never carry labels over from another space or from memory: read
   `known`, with the old name in its meaning so searches can cover both.
   Relabel old issues only when the user asks.
 
+## Epics
+
+The profile requires an Epic before every card is created. No card is created
+without an Epic assignment.
+
+- **List first.** Before assigning any card, list every open Epic in the space
+  through the Jira MCP and page until complete. Do this on every record-creation
+  run, even when the profile has an inbox key. Existing Epics are not required
+  to appear in the profile.
+- **Resolving.** Match the record to a listed Epic only when its work clearly
+  belongs there. If it does not, assign `epics.inbox`. Do not infer a more
+  specific Epic just because words look similar.
+- **Inbox.** Every profile has exactly one inbox Epic named `Pending - Missing
+  Epic`. It is for work that needs recording now but has no clear Epic yet, or
+  when there is no time to decide whether a new Epic is warranted. It is a
+  deliberate holding place, not permission to leave the card Epic-less.
+- **New Epics.** Propose a new Epic only when the work has a durable, distinct
+  outcome that does not fit an existing one. Unless the profile explicitly
+  defines another format, name it `<Impact> - <Item> <Subject>`, for example
+  `Cost - Legacy footprint and cost reduction`, `Stability - Traefik
+  observability and hardening`, or `Security - SSO and access governance`.
+  The `Pending - Missing Epic` inbox is the sole naming exception.
+- **Creating or changing an Epic.** Read the Epic type's create metadata first.
+  Add the Epic creation as a preview row before any cards that use it. Update
+  the profile only when creating or replacing the inbox Epic. After approval,
+  create the Epic, then create the cards with its key. Never use a card's
+  summary as a substitute for the relationship field.
+
 ## Bootstrap (no profile yet)
 
 1. Read the space's issue types and the create fields for each one.
@@ -167,6 +211,10 @@ its own set, so never carry labels over from another space or from memory: read
      "Labels");
    - no static `fields` except ones that are required and have one obvious
      value.
+   - an `epics` section from the space's real Epic type and card create fields.
+     Find an existing `Pending - Missing Epic` first; when it does not exist,
+     add its creation as a preview row before any record. Do not create cards
+     until it can be assigned.
    Do not invent components or custom-field values.
 3. Show the draft YAML along with every guess you made, and add "create
    profile" as row 0 of the preview. Do not ask who owns or coordinates the
@@ -191,6 +239,6 @@ its own set, so never carry labels over from another space or from memory: read
 5. Read the profile back and confirm it parses.
 
 Change the profile only through a profile row: `create profile`, or `update
-profile` for any edit, such as adding labels a record needs. A preview holds at
-most one, always row 0, written before the records so they use it. Show its YAML
-diff under the preview table.
+profile` for any edit, such as adding labels or an Epic mapping a record needs.
+Profile and Epic prerequisite rows come before records and are written in their
+listed order. Show every profile row's YAML diff under the preview table.
