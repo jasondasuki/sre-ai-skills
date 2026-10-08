@@ -37,6 +37,8 @@ guess; each one changes the file you write.
 | time and title facts | The date and time (UTC) and the title text the profile's title rule needs |
 | producer facts | The producing skill's name, the mode, the model that actually ran, and anything else the profile's footer lists. The time the report was generated is your own clock when you write it, in UTC, not a value the findings carry |
 | findings | Everything the report says. These are already in the conversation from the producer's own report; do not re-investigate |
+| visual evidence | For `hypothesis-investigation`: the producer's verified relationships, candidate paths, hypothesis IDs/statuses, comparison values, and retrieved time points or trace timings, with units, scope, windows, evidence IDs, and gaps. Use the existing findings when they already carry this information |
+| theme (optional) | `dark` writes the page dark whatever the viewer's setting is: set `data-theme="dark"` on the `<html>` element (the profile's tokens define the dark palette for it). Omitted: the page follows the viewer's setting. Only profiles that carry dark tokens honour it |
 | page-design skill (optional) | Caller-selected design skill; when provided, load it instead of the default `{{PAGE_DESIGN_SKILL}}`. The report profile still governs the title, sections, and filename |
 
 ## Profiles
@@ -79,12 +81,23 @@ same.
    IDs, their order, and the tree nesting exactly as the findings give them: do not
    renumber, and do not invent structure the findings lack (a flat list stays flat).
    Link to an object only when the brief carries its URL; otherwise show its ID as
-   plain text, because a guessed link is a wrong link.
+   plain text, because a guessed link is a wrong link. For
+   `hypothesis-investigation`, build the profile's visual investigation and
+   hypothesis map even when the cause is inconclusive. Missing trace or continuous
+   series data limits those charts; it does not remove the diagrams supported by
+   the findings.
 6. **Check it.** The file exists and is not empty; the `<title>` and the `<h1>` are
     the same string and match the profile's title rule; every section the profile
     lists is present, in order; nothing from telemetry sits unescaped. Apply the
     portable-reference rules below to prose, links, code blocks, and embedded
-    evidence; verify that no machine-local directory path remains.
+    evidence; verify that no machine-local directory path remains. For
+    `hypothesis-investigation`, also apply the profile's visual checks: actual
+    connectors, preserved hypothesis structure, plotted values and evidence
+    citations, and light/dark desktop/phone rendering. Inspect the diagrams for
+    clipped or overlapping text; a markup-only check cannot catch that. For
+    `postmortem`, render the page (in the brief's theme when it sets one) at desktop
+    and phone width and inspect the investigation graph and the swim lanes the same
+    way; both diagrams must be present.
 7. **Hand back** the full path and the command to view it, which is
    `{{OPEN_COMMAND}}` followed by the path. The producer puts these at the end of
    its chat reply.
@@ -116,9 +129,11 @@ Each rule has a reason; the reason is what lets you apply it to a case not liste
   emails, tokens, message bodies, passwords, or full request payloads. A saved file
   outlives the conversation and gets shared.
 - **No invented data.** Charts and numbers come only from results actually
-  retrieved. If a chart needs points that were not fetched, show a table or a stat
-  tile instead. Never draw a plausible-looking curve: a reader cannot tell it from
-  a measured one.
+  retrieved. Use paired bars for retrieved scalar comparisons and discrete points
+  for sparse time samples. Missing points stay missing, never zero or an
+  interpolated curve. If no numeric evidence exists for a chart, explain that gap
+  and use the supported relationship and hypothesis diagrams. Never draw a
+  plausible-looking curve: a reader cannot tell it from a measured one.
 - **Same content as the chat report.** The HTML is the same findings in a better
   container, not new claims. Anything in it traces to evidence the producer
   recorded.

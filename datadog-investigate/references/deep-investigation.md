@@ -80,7 +80,7 @@ query behind every validated node, and also:
 
 ## What the report adds
 
-On top of the normal report and HTML page:
+On top of the normal report:
 
 - A **Recurrence** line: how often this monitor and group fired in the last 14
   days, and whether earlier episodes share the cause.
@@ -91,8 +91,7 @@ On top of the normal report and HTML page:
 - A **Monitor tuning** note when the monitor flaps: the share of the last 7 days
   the series spent above the warn line, and a threshold or window that would have
   fired only on real events, with the numbers behind it.
-- The mode pill reads "Deep investigation" in the header, the Method section
-  lists the extra checks, and the file name carries the suffix `-deep`.
+- The Method section names the mode as deep and lists the extra checks.
 
 ## Stopping
 

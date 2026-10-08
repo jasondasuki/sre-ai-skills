@@ -20,9 +20,7 @@ literal path, cluster, namespace, or credential in this file.
 | Variable | Meaning |
 |---|---|
 | `{{WORKDIR}}` | Working directory for all commands |
-| `{{OUTPUT_DIR}}` | This skill's own folder for HTML reports, passed to the report skill |
-| `{{REPORT_SKILL}}` | Skill that writes the HTML report document from the finished findings |
-| `{{MODEL}}` | Model running this skill, cited in the report footer |
+| `{{MODEL}}` | Model running this skill, named in the first line of the reply when it differs |
 | `{{DEBUG_ALLOWED_CONTEXTS}}` | kubectl contexts where this skill may create debug containers without asking first |
 | `{{DEBUG_IMAGE}}` | Image for debug containers (needs `sh`, `nc`, `wget`, `nslookup`, `ps`) |
 | `{{DEBUG_SLEEP_SECONDS}}` | How long a debug container sleeps before it exits on its own |
@@ -61,18 +59,18 @@ literal path, cluster, namespace, or credential in this file.
    unreadable log is a finding, not a gap to paper over.
 8. **No secrets or customer data.** Never copy a secret, token, credential,
    connection string, or customer or personal data (emails, names, message bodies,
-   request payloads) into chat or the report: say what type it is and where it
+   request payloads) into chat: say what type it is and where it
    lives, never the value. Quote a log line exactly only when it carries none of
    these; otherwise quote its error class and message shape with each such value
-   replaced by `<redacted>`. The report outlives the triage and gets shared.
+   replaced by `<redacted>`. The answer outlives the triage: it gets pasted into
+   tickets and incident logs.
 9. **Every time is UTC and has a source; name the model that ran.** Read the clock
    with `date -u` for any time you originate (the triage start), and take cluster
    times from fields that carry absolute timestamps (`lastTimestamp` or
    `eventTime`, `startedAt`, `finishedAt` in `-o json`), not relative ages such as
    `5m`. Never write a time you guessed: an incident coordinator logs your times
    as you give them. Before the first command, check which model you are actually
-   running on; if it is not `{{MODEL}}`, say so in the first line of your reply
-   and in the report footer.
+   running on; if it is not `{{MODEL}}`, say so in the first line of your reply.
 
 ## Steps
 
@@ -151,31 +149,6 @@ shows the cause, its timing (cause before symptom), and the mechanism; **medium*
 when one of the three is not shown; **low** when the cause fits the evidence but
 nothing tested confirms it.
 
-### 6. Write the report
-
-Every triage that read from the cluster ends with an HTML report saved to disk, so
-the finding outlives the conversation. Do this after the chat answer, without being
-asked, unless the user said they want only the answer. When an incident
-coordinator or another skill ran this triage, always write the report: the caller
-logs its path, and a postmortem reads it.
-
-Use the skill `{{REPORT_SKILL}}` to write it: load it with the skill tool, or read
-its handler file if skill loading is unavailable. It owns the page, the title and
-file name rules, the escaping and secrets rules, and the checks after writing, so
-none of that is repeated here. Give it this brief:
-
-- **profile:** `triage`.
-- **output folder:** `{{OUTPUT_DIR}}`. This skill's reports go there and nowhere else.
-- **time and title facts:** the time the triage started in UTC (read with `date -u`,
-  rule 9), the namespace and workload, and the symptom in a few words.
-- **producer facts:** this skill's name, the cluster context, how many commands you
-  ran, and the model that actually ran (`{{MODEL}}`, or the real one if it
-  differs).
-- **findings:** the chat answer in full, the exact evidence line with the command
-  that produced it, the checks that mattered, and every debug container you created.
-  The page is the same findings in a better container, so add nothing the chat
-  answer does not say.
-
 ## Debug container recipe
 
 Plain `kubectl debug --image=<tools>` fails on the workloads this skill most often
@@ -211,21 +184,22 @@ meets, and the failures have specific causes. Work through these in order.
    share the pod's network namespace, so `127.0.0.1:<port>` is the app's port and a
    service name resolves exactly as it does for the app.
 7. **Clean up honestly.** The container exits when its sleep ends but stays listed
-   on the pod until the pod is recreated. Say so in your report, with the names you
+   on the pod until the pod is recreated. Say so in your answer, with the names you
    created. If a probe left a stray process, find its pid with `ps` from the
    sleeper and kill that pid.
 
 ## Output
 
-Reply in chat in this shape. The report in step 6 carries the same findings in
-full; the chat answer stays short, and its final root cause closes it, followed
-only by the path and open command the report skill gave back.
+Reply in chat in this shape. Nothing is written to disk, so the answer is the
+whole record: keep every field, give the command behind each piece of evidence, and
+end with the final root cause, which nothing follows. When a caller (such as an
+incident coordinator) ran this triage, it records this answer as it stands.
 
 ```
 Context: <kubectl context>   Target: <namespace/kind/name>
 
 What is broken: <one or two sentences>
-Evidence: <the exact event, log line (redacted per rule 8), status field, or probe result, with its source command>
+Evidence: <each check that mattered: the exact event, log line (redacted per rule 8), status field, or probe result, with its source command>
 Timeline (UTC): <restarts, events, and state changes with their cluster times, or "none recorded">
 Narrowest fix: <the smallest change that addresses it, who runs it (a role), and whether it is reversible: yes | no | partly>
 Not verified: <what you could not see, or the next check if inconclusive>
@@ -238,5 +212,4 @@ Final root cause:
   Contributing factors: <why it was worse or slower to notice, or "none found">
   Still open: <links the cluster evidence could not reach, or "none">
   Confidence: <high | medium | low, and why>
-Report: <full path to the HTML report> (open with <open command>)
 ```
