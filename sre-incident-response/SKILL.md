@@ -1,6 +1,6 @@
 ---
 name: sre-incident-response
-description: Coordinate a live production incident and write its postmortem, in three modes: new (open an incident), continue (pick up an incident that already has a log, in a new session or after a break, or take over one that another agent posted in Slack from the link to its thread), and postmortem (write up an incident that is resolved or closed). As incident coordinator it opens a timestamped incident log, proposes a severity, routes the analysis to whichever investigation skills fit what it was given (the roster of investigators is configured outside the skill, and the user can name any investigation skill for a run), keeps a running state of impact, hypothesis and actions, drafts status updates, and recommends only reversible mitigations without ever applying them. After resolution it turns the log and the investigators' final root causes into a blameless postmortem HTML report through the report skill. Use whenever the user says "we have an incident", "production is down", "declare an incident", "SEV1", "SEV2", "outage", "run this incident", "keep the timeline", "draft a status update", "continue the incident", "resume the incident", "pick up where we left off", "take over this incident" with a Slack thread link, "it is over", "write the postmortem", "post-incident review", "postmortem for the closed incident", "incident report", or "RCA document for the incident", or pastes an alert link and says it is customer-impacting - even if they do not say incident. Prefer it over the individual investigation skills whenever an incident, SEV, outage, or customer impact is declared, then call them; a bare alert link, symptom, or failing workload with no incident declared goes to those skills directly.
+description: Coordinate a live production incident and write its postmortem, in three modes: new (open an incident), continue (pick up an incident that already has a log, in a new session or after a break, or take over one that another agent posted in Slack from the link to its thread), and postmortem (write up an incident that is resolved or closed). As incident coordinator it opens a timestamped incident log, proposes a severity, routes the analysis to whichever investigation skills fit what it was given (the roster of investigators is configured outside the skill, and the user can name any investigation skill for a run), keeps a running state of impact, hypothesis and actions, drafts status updates, and recommends only reversible mitigations without ever applying them. At every close, resolved or not, it turns the log and the investigators' final root causes into a blameless postmortem HTML report through the report skill. Use whenever the user says "we have an incident", "production is down", "declare an incident", "SEV1", "SEV2", "outage", "run this incident", "keep the timeline", "draft a status update", "continue the incident", "resume the incident", "pick up where we left off", "take over this incident" with a Slack thread link, "it is over", "write the postmortem", "post-incident review", "postmortem for the closed incident", "incident report", or "RCA document for the incident", or pastes an alert link and says it is customer-impacting - even if they do not say incident. Prefer it over the individual investigation skills whenever an incident, SEV, outage, or customer impact is declared, then call them; a bare alert link, symptom, or failing workload with no incident declared goes to those skills directly.
 ---
 
 # SRE incident response
@@ -392,20 +392,31 @@ say so at the top of your reply.
 
 When the human says the incident is over (or confirms a "closed" reply in the
 thread), read `references/close-report.md` and follow it: it sets your canvas row to
-running, brings the log up to date from the thread, logs `resolved` and sets Status
-to `closed`, writes the postmortem as a dark HTML report with diagrams (prose through
-`{{HUMANIZER_SKILL}}`), posts it in the thread as the closing reply, adds the
-`{{CLOSED_REACTION}}` reaction when the incident post is yours, sets the row to
-stopped and ends the watch. The synthesis is brought up to date one last time (its
+running, brings the log up to date from the thread, logs `resolved` or `closed` and
+sets Status to `closed`, writes the postmortem as a dark HTML report with diagrams
+(prose through `{{HUMANIZER_SKILL}}`), posts it in the thread as the closing reply,
+adds the `{{CLOSED_REACTION}}` reaction when the incident post is yours, sets the row
+to stopped and ends the watch. The synthesis is brought up to date one last time (its
 "Open" and "Next evidence needed" lines carry into the postmortem), and the final
-durations are shown (`durations`, see "The incident log"). The close always produces
-the report, except for the SEV4 stand-down below.
+durations are shown (`durations`, see "The incident log").
 
-A SEV4 watch that ends with no user impact (the alert recovered on its own, it was a
-false positive, a threshold was tuned) is not an incident: log `closed` (not
-`resolved`) with the reason, set Status to `closed`, and write no postmortem unless
-the commander asks for one. If impact turns up later, set Status to `open` and
-re-propose the severity (rule 3).
+**Every close produces the postmortem and the HTML report.** The severity, the lack of
+user impact, an alert that never cleared, a cause that was never established, and an
+incident that was never resolved are not reasons to skip it: the report is where
+what is unknown is written down, and a commander who closes an unclear incident needs
+it most. Choose the closing tag by how it ended:
+
+- `resolved`: the incident ended on evidence of recovery.
+- `closed`: the commander closed it without a recorded recovery or a confirmed cause
+  (a watch that never turned into user impact, an alert that did not clear, a false
+  positive, a threshold that was tuned, or an investigation that found nothing more).
+  Give the reason in the entry.
+
+Either way the postmortem is written. When it ended with `closed`, the report says so
+at the top and shows each unknown as unknown (rule 8): resolution "not recorded", root
+cause "not established" or the leading hypothesis labelled as such, impact as far as
+the log shows it. If impact turns up later, set Status to `open` and re-propose the
+severity (rule 3).
 
 Run `check` on the log before you hand it over; it should report no errors. Then
 save your own output, the closing reply you are about to give the commander (the
@@ -493,10 +504,11 @@ reads the log and writes; it opens no new log and changes nothing in the timelin
      is closed first. Write a postmortem now only if the commander says to, label
      the draft and the report "written while the incident was open", and treat the
      missing resolution as "not recorded".
-   - `closed` with a `closed` entry and no `resolved` entry (stood down with no
-     incident, per "Close"): no postmortem is written unless the commander asks. If
-     they do, say in the first line that there was no user impact, and write it
-     from the log as it stands, with the unknowns shown as unknown (rule 8).
+   - `closed` with a `closed` entry and no `resolved` entry (closed without a recorded
+     recovery or a confirmed cause, per "Close"): go on and write it, unasked. Say in
+     the first line how it ended (for example no user impact, the alert did not clear,
+     the cause was not established), and write it from the log as it stands, with the
+     unknowns shown as unknown (rule 8).
    - An old log with the status `resolved`, `mitigated` or `monitoring` reads as
      `closed`, `open` and `open`.
 

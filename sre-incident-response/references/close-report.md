@@ -9,8 +9,9 @@ closing post yet.
 The order is fixed: **row running, log up to date from the thread, report, closing
 reply with the HTML, reaction, row stopped, watch ended.**
 
-The only exception is the SEV4 stand-down in "Close" of the core (no user impact):
-log `closed` with the reason and write no report unless the commander asks.
+There is no exception. A close writes the report whatever the severity and however the
+incident ended: resolved, never resolved, no user impact, an alert that did not clear,
+or no cause established. The unknowns go in the report as unknown (rule 8).
 
 ## Contents
 
@@ -61,10 +62,14 @@ it), then set your canvas row to running (`The canvas row`). Record the start:
 
 ## 3. Close the log
 
-Log `resolved` (or `closed` for a stand-down) with the time the commander gives (a
-time from the thread is `reported`), set Status to `closed`, bring the synthesis up to
-date one last time, show `durations`, run `check`, and save the closing reply with
-`save <log> coordinator`. This is "Close" in the core.
+Log `resolved` when there is evidence of recovery, or `closed` with the reason when the
+commander closes it without a recorded recovery or a confirmed cause (see "Close" in the
+core), with the time the commander gives (a time from the thread is `reported`). Set
+Status to `closed`, bring the synthesis up to date one last time, show `durations`
+(an unrecorded endpoint prints `not recorded`, which is correct for a `closed`
+entry), run `check`, and save the closing reply with `save <log> coordinator`. The
+report in step 4 follows either way; with `closed`, its first line says how the
+incident ended.
 
 ## 4. The report
 
