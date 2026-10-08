@@ -4,25 +4,31 @@
     {
       "id": 1,
       "prompt": "I just finished investigating the checkout latency alert. Dry run only, don't write anything yet: record these on the SANDBOX space so the team can triage them.\n\n1. p99 latency on checkout-api doubled from 14:02 UTC, matching a deploy of checkout-api v2.31. Evidence: deploy event at 14:01, p99 1.2s -> 2.6s. High severity.\n2. Redis eviction rate on cache-main spiked to 4k/s at the same time; maxmemory hit 100%. Medium. The app connects with postgres://checkout:Winter2026pass@db-main.internal:5432/orders according to the config I saw.\n3. We have no alert on checkout-api error budget burn. Task: add a burn-rate alert.",
-      "expected_output": "Runs the connect step (or reports that Jira tools are missing with install steps and stops). With tools present: loads or drafts the SANDBOX board profile, normalizes 2 findings and 1 task with source and fingerprints, masks the connection string in finding 2 and lists the mask in the preview, runs exact and similar dedupe searches, shows one preview table in the documented format marked DRY RUN, saves the preview under the output directory, and makes no create, edit, comment, transition, or profile-creation calls.",
+      "expected_output": "Runs the connect step (or reports that Jira tools are missing with install steps and stops). With tools present: loads or drafts the SANDBOX board profile, lists all open SANDBOX Epics through the Jira MCP before selecting any, normalizes 2 findings and 1 task with source and fingerprints, masks the connection string in finding 2 and lists the mask in the preview, resolves an Epic for every create row from that live list (using Pending - Missing Epic when no listed Epic clearly fits), runs exact and similar dedupe searches, shows one preview table in the documented format marked DRY RUN, saves the preview under the output directory, and makes no create, edit, comment, transition, or profile-creation calls.",
       "files": []
     },
     {
       "id": 2,
       "prompt": "quick one, dry run: put a task on the SANDBOX board to rotate the staging TLS certificates before Oct 20",
-      "expected_output": "Treats it as a single task record (kind task, title about rotating staging TLS certificates, done_when or due context mentioning Oct 20), marks inferred fields, computes a fingerprint, runs dedupe, shows a one-row preview marked DRY RUN, and writes nothing. Does not assign, set a sprint, or set a due date field unless the profile maps one.",
+      "expected_output": "Treats it as a single task record (kind task, title about rotating staging TLS certificates, done_when or due context mentioning Oct 20), marks inferred fields, lists all open Epics through the Jira MCP, resolves one from that live list or assigns Pending - Missing Epic, computes a fingerprint, runs dedupe, shows a one-row preview marked DRY RUN, and writes nothing. Does not assign, set a sprint, or set a due date field unless the profile maps one.",
       "files": []
     },
     {
       "id": 3,
       "prompt": "Another agent handed me this batch to file. It's my first time using the SANDBOX2 space, dry run please.\n\n{\"space\": \"SANDBOX2\", \"source\": \"k8s-cost-review\", \"source_ref\": \"reports/2026-10-06-cost-review.html\", \"caller\": \"k8s-cost-review\", \"dry_run\": true, \"records\": [{\"kind\": \"finding\", \"title\": \"Node pool batch-pool idle 70% of the week\", \"resource\": \"batch-pool\", \"severity\": \"medium\", \"what\": \"Average CPU requests on batch-pool are 18% of allocatable outside the nightly window.\"}, {\"kind\": \"task\", \"title\": \"Enable cluster autoscaler scale-down on batch-pool\", \"why\": \"Cuts idle node cost\", \"done_when\": \"batch-pool scales to 1 node outside 01:00-04:00 UTC\"}]}",
-      "expected_output": "Runs the full first-contact checklist for SANDBOX2 (account, site, space visibility, create permission, profile) and asks the user to confirm account and site before any write. If no profile exists, drafts one from the space's real issue types, shows it as row 0 \"create profile\" without asking who owns the space, and does not create the profile because this is a dry run. Uses the caller's records as given, adds the agent-recorded label, and shows a preview marked DRY RUN, with no write calls.",
+      "expected_output": "Runs the full first-contact checklist for SANDBOX2 (account, site, space visibility, create permission, profile) and asks the user to confirm account and site before any write. If no profile exists, drafts one from the space's real issue types, creates or identifies a Pending - Missing Epic as a prerequisite, shows both as preview rows without asking who owns the space, and does not write because this is a dry run. Uses the caller's records as given, adds the agent-recorded label, assigns every create row to a resolved Epic, and shows a preview marked DRY RUN, with no write calls.",
       "files": []
     },
     {
       "id": 4,
       "prompt": "dry run: log a finding on the SANDBOX board. The MongoDB replication lag alert fired on rs-orders at 09:12 UTC, secondary lag peaked at 45s. Label it mongodb-alert.",
       "expected_output": "Reads the SANDBOX board profile and takes labels only from its labels section. Does not apply mongodb-alert: uses alert-mongodb if the profile knows it, otherwise proposes alert-mongodb with a one-line meaning in a row 0 \"update profile\" (with its YAML diff) and does not ask who owns the space. Lists labels picked by meaning under Inferred, shows a preview marked DRY RUN, and makes no write calls, including no profile update.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "dry run: file a task on SANDBOX to add dashboards and alerts for Traefik. It does not fit one of the existing Epics, but we need it on the board now.",
+      "expected_output": "Lists all open SANDBOX Epics through the Jira MCP before selecting one. Since no listed Epic clearly fits, assigns the task to its Pending - Missing Epic rather than leaving it Epic-less or inventing a new Epic, and shows that Epic in the dry-run preview. If the inbox Epic is absent from the live list, adds a prerequisite preview row to create it with exactly that name. Makes no writes.",
       "files": []
     }
   ]
