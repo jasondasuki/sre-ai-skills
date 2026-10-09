@@ -24,7 +24,9 @@ If it prints an incident, this is an ordinary Continue: use that log and go to
 ## 2. Gate and claim
 
 If the thread already has a reply that starts `[CLOSED]`, or the post carries a
-check-mark reaction, the incident is closed: say so and offer Postmortem; do nothing
+check-mark reaction, the incident is closed: say so and offer Postmortem; if the
+`[CLOSED]` reply has a postmortem file, download it into the folder first (see
+`references/close-report.md`, "When another agent already closed"); do nothing
 else. Otherwise pass "The gate" in
 `references/slack-watch.md`: read the canvas, and if no other member's agent is
 running, claim by setting your row to running, wait, and verify. If another agent is
