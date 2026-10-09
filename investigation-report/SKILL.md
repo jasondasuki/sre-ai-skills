@@ -52,6 +52,7 @@ its visuals. Read the profile file the brief names before you write.
 | `triage` | A workload triage that ends in a cause, evidence, and a narrowest fix | `references/profile-triage.md` |
 | `cost-review` | A Kubernetes cost review with prioritized changes, marginal savings, reliability constraints, and evidence | `references/profile-cost-review.md` |
 | `postmortem` | A resolved incident with timeline, impact, final root cause, and action items | `references/profile-postmortem.md` |
+| `alarm-change-plan` | A proposed set of monitor changes awaiting a person's approval, with the list of changes, charts, and the approval step | `references/profile-alarm-change-plan.md` |
 
 If the brief names a profile not in this table, stop and say so. Do not improvise
 a format: the point of a profile is that the same kind of report always looks the
@@ -161,5 +162,7 @@ Each rule has a reason; the reason is what lets you apply it to a case not liste
 - `references/profile-triage.md`: the workload triage report format.
 - `references/profile-cost-review.md`: the Kubernetes cost-review report format.
 - `references/profile-postmortem.md`: the incident postmortem report format.
+- `references/profile-alarm-change-plan.md`: the report that precedes a bulk
+  monitor change and waits for approval.
 - `references/postmortem-layout-example.html`: the postmortem page's layout
   reference, with synthetic content. Copy the structure and CSS, never the values.
