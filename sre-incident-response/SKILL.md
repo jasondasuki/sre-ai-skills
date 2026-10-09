@@ -400,7 +400,10 @@ to stopped and ends the watch. The synthesis is brought up to date one last time
 "Open" and "Next evidence needed" lines carry into the postmortem), and the final
 durations are shown (`durations`, see "The incident log").
 
-**Every close produces the postmortem and the HTML report.** The severity, the lack of
+**Every close produces the postmortem and the HTML report**, except when another
+agent's `[CLOSED]` reply in the thread already carries one: then you download that file
+into the incident folder and write nothing (`references/close-report.md`, "When another
+agent already closed"). The severity, the lack of
 user impact, an alert that never cleared, a cause that was never established, and an
 incident that was never resolved are not reasons to skip it: the report is where
 what is unknown is written down, and a commander who closes an unclear incident needs
