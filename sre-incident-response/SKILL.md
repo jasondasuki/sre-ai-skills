@@ -32,7 +32,9 @@ literal path, model, or skill name in this file.
 | `{{OUTPUT_DIR}}` | This skill's own folder for postmortem HTML reports, passed to the report skill |
 | `{{LOG_DIR}}` | Folder holding one folder per incident; each incident folder holds its log (Markdown), the investigators' saved answers, and the coordinator's own output |
 | `{{MODEL}}` | Model running this skill, cited in the report footer |
-| `{{SUBAGENT_MODEL}}` | Model for subagents; this skill spawns none itself, the skills it calls carry their own settings |
+| `{{SUBAGENT_MODEL}}` | Model for subagents the skill spawns for its own clerical work; investigators that run as subagents use `{{INVESTIGATOR_SUBAGENT_MODEL}}`, and the skills it calls carry their own settings |
+| `{{PARALLEL_INVESTIGATORS}}` | `yes` to start every matching investigator at once as a background subagent; `no` to run them one at a time in the main session |
+| `{{INVESTIGATOR_SUBAGENT_MODEL}}` | Model for an investigator that runs as a subagent when `{{PARALLEL_INVESTIGATORS}}` is `yes`; match the investigator's own model so its reasoning does not change |
 | `{{INVESTIGATORS}}` | The roster of investigation skills: a table with the columns `Skill`, `Use when given`, `Runs`, `Why`. One row per investigator; adding a row adds an investigator |
 | `{{REPORT_SKILL}}` | Skill that writes the HTML report document from finished findings |
 | `{{UPDATE_INTERVAL_MINUTES}}` | How often a status update is due while an incident is open |
@@ -77,7 +79,11 @@ literal path, model, or skill name in this file.
    the source. Never backfill a time you guessed: a postmortem's durations are
    only as good as these entries. Log each event when you learn of it, one entry
    per call. Entries written in a batch would carry the moment of writing, not the
-   moment of the event, and the script marks any entry that was logged late.
+   moment of the event, and the script marks any entry that was logged late. "One
+   entry per call" means one `add` invocation per entry; several invocations may
+   share one shell command (`add ... && add ... && save ...`), as long as each
+   entry that has a known event time carries its own `--at` and source. That
+   saves round trips and costs the timeline nothing.
 3. **Severity is a proposal.** Propose one from `references/severity.md`, give the
    reason in one line, and treat the human's correction as final. Re-propose when
    the impact changes.
@@ -182,8 +188,10 @@ thread and sets your row back to stopped.
 
 ### 2. Route the analysis
 
-In a New incident, first set your canvas row to running (`references/slack-watch.md`,
-"The canvas row"); it goes back to stopped once the post is up.
+In a New incident, set your canvas row to running (`references/slack-watch.md`,
+"The canvas row"); it goes back to stopped once the post is up. The first pass is not
+gated, so do not wait for this: make the edit in the same message that launches the
+investigators, or while one runs.
 
 The investigators are a roster, not a fixed pair. This is the roster for this
 machine:
@@ -193,11 +201,14 @@ machine:
 Choose by what the user gave you, not by what is easiest:
 
 1. **Match the input to the roster.** Compare what you were given with each row's
-   `Use when given`. One match: run that skill. Several: run them one at a time in
-   `Runs` order (lowest first; a tie keeps the order listed), and after each one
-   returns say whether the next still adds anything, since the commander decides.
-   Running them in order matters because a quick check that clears or points at one
-   layer can make a longer investigation of another layer unnecessary or better aimed.
+   `Use when given`. One match: run that skill. Several: with
+   `{{PARALLEL_INVESTIGATORS}}` `yes`, start all of them at once (see "Parallel
+   runs" below), so the slowest one sets the wait. With `no`, run them one at a time
+   in `Runs` order (lowest first; a tie keeps the order listed), and after each one
+   returns say whether the next still adds anything, since the commander decides:
+   a quick check that clears or points at one layer can make a longer investigation
+   of another layer unnecessary or better aimed. In parallel mode `Runs` only sets
+   the order in which finished answers are saved, logged and shown.
 2. **The user can override the roster.** When they name investigators ("use X",
    "use both", "also run Y"), run exactly those, in the order given. That includes
    a skill that is not on the roster, as long as it meets the contract below. If a
@@ -218,11 +229,26 @@ Load the skill with the skill tool, or read its handler file if skill loading is
 unavailable, and pass it exactly what the user gave you, plus one line: "Running
 for incident <id>: change nothing in production, and ask the human before any step
 that would (for example creating a debug container), even on a context where you
-may do so without asking." Run them one at a time: each ends with its answer in
-chat, and you need that answer before you choose the next step. Tell the user
-before starting which investigators you will run and in what order, that it will
-take a few minutes, that you will keep the log current meanwhile, and that an
-investigator may ask them to approve a step that changes something.
+may do so without asking." Tell the user before starting which investigators you
+will run (and in what order, when they run one at a time), that it will take a few
+minutes, that you will keep the log current meanwhile, and that an investigator
+may ask them to approve a step that changes something.
+
+**Parallel runs** (`{{PARALLEL_INVESTIGATORS}}` is `yes` and more than one
+investigator matches). Start each as a background subagent in one message, with
+model `{{INVESTIGATOR_SUBAGENT_MODEL}}`, and give each the same brief: load the
+skill, run it on the user's input, and answer in the skill's own shape.
+A subagent cannot ask the human, so the brief adds: "Read-only only. If a step
+would change anything (for example creating a debug container), do not take it:
+end your answer with a line `NEEDS APPROVAL: <the step, the target, why>`." When
+such a line comes back, ask the commander in the session, and run that one step
+only on a yes. While they run, do the work that does not need their answers: open
+the log, set the first state block and status draft, and start the Slack work for
+a New incident (the canvas row, above). Handle each answer as it returns, in `Runs` order when
+several are ready; rewrite the synthesis after each one, saying which source is
+still out, and once more when the last returns. If one is far slower than the
+rest and the commander asks, give them the combined reading from what has
+returned and say what is outstanding.
 
 When a skill returns, first **save its answer**. An investigator answers in chat and
 writes nothing to disk, so the answer you were just given is the only record of its queries and of
@@ -238,7 +264,8 @@ EOF
 It writes `<skill name>.md` in the incident folder beside the log (a repeat run gets `-2`),
 adds a one-line provenance header, and prints the link to use. Evidence you
 gathered yourself from a source with no investigator is saved the same way when it
-is more than a line. Then log:
+is more than a line. Run the `save`, every entry below and a `check` as one chained
+shell command, so one answer costs one tool call (rule 2). Then log:
 
 - one `hypothesis` entry with its stated cause, its confidence, and the link the
   script printed (`<skill name>.md`),
