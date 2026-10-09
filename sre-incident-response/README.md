@@ -131,6 +131,7 @@ The core holds placeholders. Each computer sets their values in its handler.
 |---|---|
 | `WORKDIR`, `OUTPUT_DIR`, `LOG_DIR` | Working directory, the folder for reports, and the folder that holds one folder per incident |
 | `MODEL`, `SUBAGENT_MODEL` | The model for this skill, and for subagents in the form the runtime's subagent tool accepts |
+| `PARALLEL_INVESTIGATORS`, `INVESTIGATOR_SUBAGENT_MODEL` | `yes` starts every matching investigator at once as a read-only background subagent (a step that would change something comes back as `NEEDS APPROVAL` for the commander); `no` runs them one at a time. The model for those subagents |
 | `INVESTIGATORS` | The roster table: `Skill`, `Use when given`, `Runs`, `Why` |
 | `REPORT_SKILL`, `HUMANIZER_SKILL` | The names of the two skills above |
 | `UPDATE_INTERVAL_MINUTES` | How often a status update is due while an incident is open |

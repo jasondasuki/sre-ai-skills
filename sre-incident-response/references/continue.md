@@ -13,8 +13,11 @@ from an earlier conversation.
    one line and offer New; if the user means one that is already closed, go to
    the reopen rule in step 3.
 2. **Reload it.** Run `check` (fix an ordering error with `sort`) and `durations`.
-   Read the whole log: state, synthesis, timeline. Read the saved answers the
-   timeline links (in the incident folder) and the latest `coordinator` file. If the
+   Read the whole log: state, synthesis, timeline, and the latest `coordinator`
+   file. Read a saved answer (in the incident folder) only when the new facts bear
+   on it or you are about to re-run its investigator; the synthesis already holds
+   each one's finding, confidence and limits, and the timeline links the rest. Issue
+   `check`, `durations` and these reads in one message. If the
    state block and the timeline disagree (a `resolved` entry with Status still
    `open`), say so and go by the timeline.
 3. **Reopen only on a reason.** If the log's Status is `closed` and the user says
