@@ -27,8 +27,8 @@ Then, as short labelled lines:
 - **Ruled out:** the branches the data rejected.
 - **Still open:** links in the chain the data could not reach.
 - **Contributing factors:** why it was worse or slower to detect.
-- **Confidence:** high, medium, or low, on the scale in Step 6's rules, with the
-  reason.
+- **Confidence:** high, medium, or low, on the scale in
+  `references/report.md`, with the reason.
 
 Every link cites the evidence IDs behind it and uses only validated nodes of the
 hypothesis tree. An unproven link is named as open and is never filled in with a

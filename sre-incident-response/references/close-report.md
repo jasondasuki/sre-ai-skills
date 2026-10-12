@@ -93,8 +93,8 @@ it), then set your canvas row to running (`The canvas row`). Record the start:
 ## 3. Close the log
 
 Log `resolved` when there is evidence of recovery, or `closed` with the reason when the
-commander closes it without a recorded recovery or a confirmed cause (see "Close" in the
-core), with the time the commander gives (a time from the thread is `reported`). Set
+commander closes it without a recorded recovery or a confirmed cause (see "Close" in
+`references/close.md`), with the time the commander gives (a time from the thread is `reported`). Set
 Status to `closed`, bring the synthesis up to date one last time, show `durations`
 (an unrecorded endpoint prints `not recorded`, which is correct for a `closed`
 entry), run `check`, and save the closing reply with `save <log> coordinator`. The
@@ -109,13 +109,13 @@ incident ended.
    went-well, went-badly and lucky lists, the action items' wording, open questions).
    Never give it, and never let it change: ids, times, durations, counts, tags,
    source names, quoted text, the investigators' final root cause (verbatim, as in
-   step 3 of Postmortem), table structure, or an action item's type, priority, owner
+   step 3 of `references/postmortem.md`), table structure, or an action item's type, priority, owner
    and due. Then compare the draft before and after: every number, time, id,
    confidence word (high, medium, low), hypothesis name and file name appears
    unchanged. Where the rewrite changed a fact, hedge or claim, keep the original
    sentence. The blameless wording checks in `postmortem-findings.md` still pass. Save
    the final draft with `save <log> postmortem-draft` (a repeat gets `-2`).
-3. **Build the page** with `{{REPORT_SKILL}}` as in step 6 of Postmortem, with the
+3. **Build the page** with `{{REPORT_SKILL}}` as in step 6 of Postmortem (`references/postmortem.md`; read its step 6 brief now), with the
    brief's `theme: dark` and the output folder `{{OUTPUT_DIR}}`. The page must show
    the investigation graph and the timeline diagram; the report skill renders it dark
    at desktop and phone width and checks the diagrams before you post it. A page

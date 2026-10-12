@@ -224,7 +224,7 @@ routed, and to stopped once the post is up (Setting it up, step 2).
 ## Closing
 
 When the incident is closed (the commander says so in the session, or confirms a
-closing reply), follow `references/close-report.md`: row running, the log brought up
+closing reply), read `references/close.md` and follow `references/close-report.md`: row running, the log brought up
 to date from the thread, the postmortem as a dark HTML report, the `[CLOSED]` reply in
 the thread with the HTML attached, the reaction on the incident post when it is yours,
 row stopped, the scheduled job deleted and `watch <log> stop`. Every close produces
