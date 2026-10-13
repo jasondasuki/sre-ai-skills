@@ -110,7 +110,7 @@ for v in $used; do
   echo "$defined" | grep -qx "$v" || err "core uses {{$v}} but the handler has no row for it"
 done
 for v in $defined; do
-  case "$v" in SKILL_NAME|CORE_DIR|CORE_BRANCH|CORE_REMOTE|PREFLIGHT_SCRIPT|MODEL|EFFORT|SUBAGENT_MODEL|WORKDIR|OUTPUT_DIR) continue ;; esac
+  case "$v" in SKILL_NAME|CORE_DIR|CORE_BRANCH|CORE_REMOTE|PREFLIGHT_SCRIPT|MODEL|EFFORT|SUBAGENT_MODEL|AGENT_SELECTION_FILE|WORKDIR|OUTPUT_DIR) continue ;; esac
   echo "$used" | grep -qx "$v" || warn "handler defines $v but the core never uses it"
 done
 

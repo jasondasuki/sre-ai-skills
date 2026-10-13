@@ -32,6 +32,7 @@ literal path, model, or identifier in this file.
 | `{{DEFAULT_MODEL}}` | Model ID written into a new handler's frontmatter and `MODEL` row |
 | `{{DEFAULT_EFFORT}}` | Effort written into a new handler's frontmatter and `EFFORT` row |
 | `{{DEFAULT_SUBAGENT_MODEL}}` | Subagent model written into a new handler's `SUBAGENT_MODEL` row, in the form the subagent tool accepts |
+| `{{AGENT_SELECTION_FILE}}` | Model tier policy file written into a new handler's `AGENT_SELECTION_FILE` row |
 | `{{DEFAULT_WORKDIR}}` | Working and output directory written into a new handler when the core names no other |
 | `{{SUBAGENT_MODEL}}` | Model the drafting subagents run on |
 | `{{SUBAGENT_EFFORT}}` | Effort the drafting subagents work at |
