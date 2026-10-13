@@ -46,6 +46,7 @@ The handler supplies these values; use the placeholders, never literals.
 | `{{CORE_REMOTE}}` | Remote that branch must be up to date with |
 | `{{PREFLIGHT_SCRIPT}}` | The branch-and-freshness check handlers run first |
 | `{{DEFAULT_SUBAGENT_MODEL}}` | Subagent model given to a new skill when the user names none, in the form the runtime's subagent tool accepts |
+| `{{AGENT_SELECTION_FILE}}` | Policy file naming the model and effort for each agent tier (planner, executor, scanner); copied into every new handler's `AGENT_SELECTION_FILE` row |
 | `{{MODEL_ALIASES}}` | Mapping from spoken model names to model IDs |
 | `{{WORKSPACES_DIR}}` | Scratch area for test runs, outside the skills directory and git-ignored |
 | `{{SKILL_CREATOR}}` | Name of the installed skill-creator to delegate testing to |
@@ -126,7 +127,7 @@ account?* If yes, it is a handler variable. If no, it is core.
 | Anything that only exists on this machine (a CLI path, a mounted drive) | Behaviour when a tool is absent |
 
 Every skill gets these standard variables: `SKILL_NAME`, `CORE_DIR`, `MODEL`,
-`EFFORT`, `SUBAGENT_MODEL`, `WORKDIR`, `OUTPUT_DIR`, and the preflight trio
+`EFFORT`, `SUBAGENT_MODEL`, `AGENT_SELECTION_FILE`, `WORKDIR`, `OUTPUT_DIR`, and the preflight trio
 `CORE_BRANCH`, `CORE_REMOTE`, `PREFLIGHT_SCRIPT`. Add skill-specific ones as needed. Name them in
 `UPPER_SNAKE_CASE` and keep each to one value with one purpose.
 
@@ -368,6 +369,7 @@ handlers. For each core that lacks a handler in `{{SKILLS_DIR}}`, in any repo:
 2. Derive each value without asking when you can:
    - the standard rows (`SKILL_NAME`, `CORE_DIR`, and the three preflight rows)
      come from where the core lives and from this handler's own values;
+   - `AGENT_SELECTION_FILE` is always `{{AGENT_SELECTION_FILE}}`;
    - model, effort, and subagent model default to `{{DEFAULT_MODEL}}`,
      `{{DEFAULT_EFFORT}}`, and `{{DEFAULT_SUBAGENT_MODEL}}`, and the working and
      output directories to `{{DEFAULT_WORKDIR}}`, unless the core says it needs

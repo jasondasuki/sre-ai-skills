@@ -33,9 +33,11 @@ computer and this agent setup. The general instructions live in the shared core.
 4. Run every shell command for this skill from `WORKDIR`, using absolute paths,
    and write outputs under `OUTPUT_DIR` unless the core says otherwise.
 5. Resolve secrets only as described under "Secrets" below, and never print them.
-6. When the core tells you to spawn subagents, give each one the model in
-   `SUBAGENT_MODEL` (and the type in `SUBAGENT_TYPE` if the table defines one).
-   Never let a subagent inherit this skill's model unless the core says to.
+6. When the core tells you to spawn subagents, pick the tier for each one's job from
+   `AGENT_SELECTION_FILE` and pass that tier's model and effort. `SUBAGENT_MODEL` below
+   is the executor tier; a row for a specific role (such as `SUBAGENT_TYPE` or a
+   `*_SUBAGENT_MODEL`) overrides the tier for that role. Never let a subagent inherit
+   this skill's model unless the core says to.
 7. Follow the core's instructions from there.
 
 ## Local variables
@@ -50,6 +52,7 @@ computer and this agent setup. The general instructions live in the shared core.
 | `MODEL` | `<<MODEL>>` | Model for this skill (same as frontmatter) |
 | `EFFORT` | `<<EFFORT>>` | Effort for this skill (same as frontmatter) |
 | `SUBAGENT_MODEL` | `<<SUBAGENT_MODEL>>` | Model passed to subagents this skill spawns, as the subagent tool accepts it |
+| `AGENT_SELECTION_FILE` | `<<AGENT_SELECTION_FILE>>` | Model and effort for the planner, executor and scanner tiers |
 | `WORKDIR` | `<<WORKDIR>>` | Working directory for this skill's commands |
 | `OUTPUT_DIR` | `<<OUTPUT_DIR>>` | Where this skill writes its outputs |
 <<EXTRA_ROWS>>

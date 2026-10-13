@@ -26,7 +26,7 @@ the single handler directory named below.
 - Standard rows: `SKILL_NAME` is `<NAME>`; `CORE_DIR` is `<CORE_DIR>`; `CORE_BRANCH` is
   `{{CORE_BRANCH}}`; `CORE_REMOTE` is `{{CORE_REMOTE}}`; `PREFLIGHT_SCRIPT` is
   `{{GENERATOR_DIR}}/scripts/preflight.sh`; `SUBAGENT_MODEL` is
-  `{{DEFAULT_SUBAGENT_MODEL}}`; `WORKDIR` and `OUTPUT_DIR` are `{{DEFAULT_WORKDIR}}`
+  `{{DEFAULT_SUBAGENT_MODEL}}`; `AGENT_SELECTION_FILE` is `{{AGENT_SELECTION_FILE}}`; `WORKDIR` and `OUTPUT_DIR` are `{{DEFAULT_WORKDIR}}`
   unless the core says it needs something specific.
 - One extra row per remaining variable in the core's table, with a short purpose. Use
   the answers below for every value. A variable with no answer and no discoverable
