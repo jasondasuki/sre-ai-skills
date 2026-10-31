@@ -86,7 +86,9 @@ same.
    `hypothesis-investigation`, build the profile's visual investigation and
    hypothesis map even when the cause is inconclusive. Missing trace or continuous
    series data limits those charts; it does not remove the diagrams supported by
-   the findings.
+   the findings. Where the report has a mechanism, timeline, flow, or chart to show,
+   draw it as an animated diagram by default: read `references/animated-style.md`
+   first and follow it (see "Animated diagrams" below).
 6. **Check it.** The file exists and is not empty; the `<title>` and the `<h1>` are
     the same string and match the profile's title rule; every section the profile
     lists is present, in order; nothing from telemetry sits unescaped. Apply the
@@ -98,7 +100,10 @@ same.
     clipped or overlapping text; a markup-only check cannot catch that. For
     `postmortem`, render the page (in the brief's theme when it sets one) at desktop
     and phone width and inspect the investigation graph and the swim lanes the same
-    way; both diagrams must be present.
+    way; both diagrams must be present. For a page with animated diagrams, also
+    run the verification list in `references/animated-style.md`: reduced-motion and
+    no-script render show the complete static page, print shows every step, no
+    console errors, and no sideways scroll at phone width.
 7. **Hand back** the full path and the command to view it, which is
    `{{OPEN_COMMAND}}` followed by the path. The producer puts these at the end of
    its chat reply.
@@ -117,6 +122,24 @@ a text label as well as colour, so the page reads without colour vision. A profi
 may set its own visual language (the `postmortem` profile does, with a layout
 example); where it does, the profile's palette and layout replace the warm style
 above, and every rule in this file still applies.
+
+## Animated diagrams
+
+Diagrams are animated and playful by default: inline SVG with small blob
+characters, travelling packets, step and play controls, hover inspectors, and
+gentle entrances. `references/animated-style.md` holds the tokens, the
+anatomy, the motion rules, the layout gotchas, and the checks. The hard rules
+below all still apply, and these three outrank the animation:
+
+- **Animation never hides content.** With reduced motion, with scripts off, and
+  printed, the page shows the complete static end state; controls are hidden
+  and every step, number, and label is visible.
+- **Animation never invents data.** Packets show a mechanism and are captioned as
+  illustrative; charts reveal only retrieved points and keep gaps as gaps.
+- **A profile's limits win.** Where a profile restricts script (the postmortem
+  profile does), use CSS-only motion and keep the static diagram complete.
+
+Skip the motion, not the diagram, when the findings show nothing that moves.
 
 ## Hard rules
 
@@ -164,5 +187,8 @@ Each rule has a reason; the reason is what lets you apply it to a case not liste
 - `references/profile-postmortem.md`: the incident postmortem report format.
 - `references/profile-alarm-change-plan.md`: the report that precedes a bulk
   monitor change and waits for approval.
+- `references/animated-style.md`: the animated, playful diagram style (tokens, blob
+  characters, diagram anatomy, motion rules, gotchas, verification). Read it before
+  drawing any diagram.
 - `references/postmortem-layout-example.html`: the postmortem page's layout
   reference, with synthetic content. Copy the structure and CSS, never the values.
